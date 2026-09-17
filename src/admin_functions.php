@@ -125,6 +125,127 @@ function corregir_entrada(int $idFichaje, string $entrada, string $obs, int $idA
     }
 }
 
+function estado_validacion(int $estado): array
+{
+    return match ($estado) {
+        1 => ['texto' => 'Aprobado', 'clase' => 'active'],
+        2 => ['texto' => 'Rechazado', 'clase' => 'delayed'],
+        default => ['texto' => 'Pendiente', 'clase' => 'pending'],
+    };
+}
+
+function fichajes_validacion(string $mes, string $estado = 'pendiente', int $idUsuario = 0): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $w = ["DATE_FORMAT(f.fecha, '%Y-%m') = :mes"];
+    $p = ['mes' => $mes];
+
+    if ($estado === 'pendiente') {
+        $w[] = 'f.validado_admin = 0';
+    } elseif ($estado === 'aprobado') {
+        $w[] = 'f.validado_admin = 1';
+    } elseif ($estado === 'rechazado') {
+        $w[] = 'f.validado_admin = 2';
+    }
+
+    if ($idUsuario > 0) {
+        $w[] = 'f.id_usuario = :id';
+        $p['id'] = $idUsuario;
+    }
+
+    $sql = "SELECT f.id_fichaje, f.fecha,
+                   TIME_FORMAT(f.hora_entrada, '%H:%i') AS entrada,
+                   TIME_FORMAT(f.hora_salida, '%H:%i') AS salida,
+                   f.horas_trabajadas, f.validado_admin, f.obs_validacion,
+                   CONCAT(u.nombre, ' ', u.apellido) AS empleado,
+                   u.dni, u.tipo_contrato,
+                   TRIM(CONCAT(COALESCE(a.nombre, ''), ' ', COALESCE(a.apellido, ''))) AS validador
+            FROM fichajes f
+            INNER JOIN usuarios u ON u.id_usuario = f.id_usuario
+            LEFT JOIN usuarios a ON a.id_usuario = f.validado_por
+            WHERE " . implode(' AND ', $w) . "
+            ORDER BY f.fecha DESC, f.hora_entrada DESC, f.id_fichaje DESC";
+    $stmt = db()->prepare($sql);
+    $stmt->execute($p);
+    return $stmt->fetchAll();
+}
+
+function fichajes_validacion_stats(string $mes, int $idUsuario = 0): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $w = ["DATE_FORMAT(fecha, '%Y-%m') = :mes"];
+    $p = ['mes' => $mes];
+    if ($idUsuario > 0) {
+        $w[] = 'id_usuario = :id';
+        $p['id'] = $idUsuario;
+    }
+    $sql = "SELECT validado_admin, COUNT(*) AS total
+            FROM fichajes
+            WHERE " . implode(' AND ', $w) . "
+            GROUP BY validado_admin";
+    $stmt = db()->prepare($sql);
+    $stmt->execute($p);
+    $out = ['pendiente' => 0, 'aprobado' => 0, 'rechazado' => 0, 'total' => 0];
+    foreach ($stmt->fetchAll() as $r) {
+        $n = (int)$r['total'];
+        $out['total'] += $n;
+        $k = (int)$r['validado_admin'];
+        if ($k === 1) {
+            $out['aprobado'] += $n;
+        } elseif ($k === 2) {
+            $out['rechazado'] += $n;
+        } else {
+            $out['pendiente'] += $n;
+        }
+    }
+    return $out;
+}
+
+function validar_fichaje_estado(int $idFichaje, int $estado, string $obs, int $idAdmin): array
+{
+    if ($idFichaje <= 0) return ['ok' => false, 'message' => 'Fichaje inválido.'];
+    if (!in_array($estado, [0, 1, 2], true)) return ['ok' => false, 'message' => 'Estado de validación no válido.'];
+
+    if ($estado === 0) {
+        $obs = null;
+    } else {
+        $obs = mb_substr(trim($obs), 0, 500);
+        if ($estado === 2 && $obs === '') {
+            return ['ok' => false, 'message' => 'Indicá una observación para rechazar la entrada/salida.'];
+        }
+        if ($obs === '') {
+            $obs = 'Validado por administración';
+        }
+    }
+
+    try {
+        $check = db()->prepare('SELECT COUNT(*) FROM fichajes WHERE id_fichaje = :id');
+        $check->execute(['id' => $idFichaje]);
+        if ((int)$check->fetchColumn() === 0) {
+            return ['ok' => false, 'message' => 'El fichaje no existe.'];
+        }
+        if ($estado === 0) {
+            db()->prepare(
+                'UPDATE fichajes
+                 SET validado_admin = 0, validado_por = NULL, obs_validacion = NULL
+                 WHERE id_fichaje = :id'
+            )->execute(['id' => $idFichaje]);
+            registrar_auditoria($idAdmin, 'fichaje_a_pendiente', 'ID ' . $idFichaje);
+        } else {
+            db()->prepare(
+                'UPDATE fichajes
+                 SET validado_admin = :estado, validado_por = :adm, obs_validacion = :obs
+                 WHERE id_fichaje = :id'
+            )->execute(['estado' => $estado, 'adm' => $idAdmin, 'obs' => $obs, 'id' => $idFichaje]);
+            registrar_auditoria($idAdmin, $estado === 1 ? 'fichaje_aprobado' : 'fichaje_rechazado', 'ID ' . $idFichaje . ' - ' . $obs);
+        }
+        return ['ok' => true, 'estado' => $estado];
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        return ['ok' => false, 'message' => 'No se pudo guardar la validación.'];
+    }
+}
+
 function list_employees(string $search = '', string $contract = ''): array
 {
     $sql = "SELECT u.id_usuario,u.nombre,u.apellido,u.dni,u.especialidad,u.tipo_contrato,u.username,u.activo,
@@ -243,7 +364,6 @@ function toggle_employee_status(int $id): array
 {
     $employee=find_employee($id);
     if (!$employee) return ['ok'=>false,'message'=>'Empleado no encontrado.'];
-    if ((int)$employee['es_admin']===1) return ['ok'=>false,'message'=>'No se puede desactivar un administrador desde este módulo.'];
     try {
         db()->prepare('UPDATE usuarios SET activo = 1 - activo WHERE id_usuario=:id')->execute(['id'=>$id]);
         registrar_auditoria((int)($_SESSION['user']['id'] ?? 0), 'empleado_estado', 'ID ' . $id . ' -> ' . ((int)$employee['activo']===1?'inactivo':'activo'));
@@ -300,9 +420,7 @@ function employees_by_role(array $keywords): array
     $params = [];
     $i = 1;
     foreach ($keywords as $kw) {
-        $like[] = 'COALESCE(u.especialidad,\'\') LIKE :k' . $i;
         $like[] = 'COALESCE(tp.nombre,\'\') LIKE :t' . $i;
-        $params['k' . $i] = '%' . $kw . '%';
         $params['t' . $i] = '%' . $kw . '%';
         $i++;
     }
@@ -322,9 +440,7 @@ function employees_other(array $exclude): array
     $params = [];
     $i = 1;
     foreach ($exclude as $kw) {
-        $not[] = 'COALESCE(u.especialidad,\'\') NOT LIKE :k' . $i;
         $not[] = 'COALESCE(tp.nombre,\'\') NOT LIKE :t' . $i;
-        $params['k' . $i] = '%' . $kw . '%';
         $params['t' . $i] = '%' . $kw . '%';
         $i++;
     }

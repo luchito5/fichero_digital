@@ -37,7 +37,7 @@ require __DIR__ . '/partials/header.php';
 <?php if ($demorados > 0): ?><span class="status delayed"><?= $demorados ?> con más de 12 h</span><?php endif; ?>
 </div>
 <section class="panel"><div class="table-wrap"><table>
-<thead><tr><th>Empleado</th><th>Contrato</th><th>DNI</th><th>Fecha</th><th>Entrada</th><th>Tiempo sin salida</th><th></th></tr></thead>
+<thead><tr><th>Empleado</th><th>Tipo de contrato</th><th>DNI</th><th>Fecha</th><th>Entrada</th><th>Tiempo sin salida</th><th></th></tr></thead>
 <tbody>
 <?php foreach ($pendientes as $f): $dem = (int)$f['demorado'] === 1; ?>
 <tr<?= $dem ? ' class="fichaje-delayed"' : '' ?>>

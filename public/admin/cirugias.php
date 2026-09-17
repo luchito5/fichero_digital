@@ -47,7 +47,7 @@ require __DIR__ . '/partials/header.php';
 <div>
     <label>Tipo de procedimiento</label>
     <select name="tipo_procedimiento" required>
-        <option value="">Ej: Apendicectomía, Hernia...</option>
+        <option value="">Seleccionar tipo de procedimiento</option>
         <?php foreach ($tipos as $tipo): ?>
         <option value="<?= (int)$tipo['id_tipo_proc'] ?>" <?= (string)($_POST['tipo_procedimiento'] ?? '') === (string)$tipo['id_tipo_proc'] ? 'selected' : '' ?>><?= e($tipo['nombre']) ?></option>
         <?php endforeach; ?>

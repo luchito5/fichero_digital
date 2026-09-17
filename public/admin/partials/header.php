@@ -27,6 +27,7 @@ $current = basename($_SERVER['PHP_SELF']);
         <a href="vacaciones.php">Vacaciones / ART</a>
         <a href="alquileres.php">Alquileres</a>
         <a class="<?= $current === 'fichajes_pendientes.php' ? 'active' : '' ?>" href="fichajes_pendientes.php">Fichajes pendientes</a>
+        <a class="<?= $current === 'validacion.php' ? 'active' : '' ?>" href="validacion.php">Validación</a>
         <a href="resumen_mensual.php">Resumen e informes</a>
         <a href="configuracion.php">Configuración</a>
     </nav>

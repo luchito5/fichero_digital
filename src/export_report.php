@@ -78,7 +78,7 @@ function reporte_datos(string $mes, int $idUsuario = 0, string $contrato = ''): 
             $r['entrada'] ?? '-',
             $r['salida'] ?? '-',
             $r['horas_trabajadas'] !== null ? $fmt((float)$r['horas_trabajadas']) . ' h' : '-',
-            (int)$r['validado_admin'] ? 'Sí' : 'No',
+            estado_validacion((int)$r['validado_admin'])['texto'],
         ];
     }
     $secciones[] = [

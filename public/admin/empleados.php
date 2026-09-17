@@ -19,7 +19,7 @@ require __DIR__ . '/partials/header.php';
 <button class="small-btn" type="submit"><?= icon('search') ?>Buscar</button>
 </form>
 <section class="panel"><div class="table-wrap"><table>
-<thead><tr><th>Nombre</th><th>Tipo</th><th>DNI</th><th>Tipo de personal</th><th>Estado</th><th>Acciones</th></tr></thead>
+<thead><tr><th>Nombre</th><th>Tipo de contrato</th><th>DNI</th><th>Tipo de personal</th><th>Estado</th><th>Acciones</th></tr></thead>
 <tbody>
 <?php foreach($employees as $employee): ?>
 <tr>

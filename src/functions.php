@@ -16,6 +16,19 @@ function today_fichaje(int $userId): ?array
     return $stmt->fetch() ?: null;
 }
 
+function today_fichajes(int $userId): array
+{
+    $stmt = db()->prepare(
+        'SELECT id_fichaje, fecha, hora_entrada, hora_salida, horas_trabajadas, validado_admin
+         FROM fichajes
+         WHERE id_usuario = :id AND fecha = CURDATE()
+         ORDER BY id_fichaje ASC'
+    );
+    $stmt->execute(['id' => $userId]);
+
+    return $stmt->fetchAll();
+}
+
 function register_entry(int $userId): array
 {
     $pdo = db();
@@ -44,8 +57,12 @@ function register_entry(int $userId): array
              VALUES (:id, CURDATE(), CURTIME(), 0)'
         );
         $stmt->execute(['id' => $userId]);
+        $idFichaje = (int)$pdo->lastInsertId();
 
-        $time = date('H:i');
+        $stmt = $pdo->prepare("SELECT TIME_FORMAT(hora_entrada, '%H:%i') FROM fichajes WHERE id_fichaje = :id");
+        $stmt->execute(['id' => $idFichaje]);
+        $time = (string)$stmt->fetchColumn();
+
         $pdo->commit();
 
         return ['ok' => true, 'time' => $time];
@@ -90,7 +107,10 @@ function register_exit(int $userId): array
         );
         $stmt->execute(['fichaje' => $fichaje['id_fichaje']]);
 
-        $time = date('H:i');
+        $stmt = $pdo->prepare("SELECT TIME_FORMAT(hora_salida, '%H:%i') FROM fichajes WHERE id_fichaje = :id");
+        $stmt->execute(['id' => $fichaje['id_fichaje']]);
+        $time = (string)$stmt->fetchColumn();
+
         $pdo->commit();
 
         return ['ok' => true, 'time' => $time];
@@ -131,6 +151,100 @@ function recent_fichajes(int $userId, int $limit = 10): array
     $stmt->execute(['id' => $userId]);
 
     return $stmt->fetchAll();
+}
+
+function my_month_fichajes(int $userId, string $mes): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $stmt = db()->prepare(
+        "SELECT id_fichaje, fecha,
+                TIME_FORMAT(hora_entrada, '%H:%i') AS entrada,
+                TIME_FORMAT(hora_salida, '%H:%i') AS salida,
+                horas_trabajadas, validado_admin, obs_validacion
+         FROM fichajes
+         WHERE id_usuario = :id AND DATE_FORMAT(fecha, '%Y-%m') = :mes
+         ORDER BY fecha DESC, id_fichaje DESC"
+    );
+    $stmt->execute(['id' => $userId, 'mes' => $mes]);
+
+    return $stmt->fetchAll();
+}
+
+function my_month_cirugias(int $userId, string $mes): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $stmt = db()->prepare(
+        "SELECT c.id_cirugia, c.fecha, TIME_FORMAT(c.hora_inicio, '%H:%i') AS hora_inicio,
+                COALESCE(cp.rol_en_cirugia, '') AS rol, tp.nombre AS procedimiento,
+                c.observaciones
+         FROM cirugia_personal cp
+         INNER JOIN cirugias c ON c.id_cirugia = cp.id_cirugia
+         INNER JOIN tipos_procedimiento tp ON tp.id_tipo_proc = c.id_tipo_procedimiento
+         WHERE cp.id_usuario = :id AND DATE_FORMAT(c.fecha, '%Y-%m') = :mes
+         ORDER BY c.fecha DESC, c.hora_inicio DESC"
+    );
+    $stmt->execute(['id' => $userId, 'mes' => $mes]);
+
+    return $stmt->fetchAll();
+}
+
+function my_month_novedades(int $userId, string $mes): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $inicio = $mes . '-01';
+    $fin = date('Y-m-t', strtotime($inicio));
+    $stmt = db()->prepare(
+        'SELECT tipo, fecha_desde, fecha_hasta, observaciones
+         FROM novedades
+         WHERE id_usuario = :id
+           AND fecha_desde <= :fin
+           AND (fecha_hasta IS NULL OR fecha_hasta >= :inicio)
+         ORDER BY fecha_desde DESC'
+    );
+    $stmt->execute(['id' => $userId, 'fin' => $fin, 'inicio' => $inicio]);
+
+    return $stmt->fetchAll();
+}
+
+function my_month_stats(int $userId, string $mes): array
+{
+    $mes = preg_match('/^\d{4}-\d{2}$/', $mes) ? $mes : date('Y-m');
+    $stmt = db()->prepare(
+        'SELECT COUNT(*) AS fichajes, COUNT(DISTINCT fecha) AS dias,
+                COALESCE(SUM(horas_trabajadas), 0) AS horas
+         FROM fichajes
+         WHERE id_usuario = :id AND DATE_FORMAT(fecha, "%Y-%m") = :mes'
+    );
+    $stmt->execute(['id' => $userId, 'mes' => $mes]);
+    $f = $stmt->fetch();
+
+    $stmt = db()->prepare(
+        'SELECT COUNT(*)
+         FROM cirugia_personal cp
+         INNER JOIN cirugias c ON c.id_cirugia = cp.id_cirugia
+         WHERE cp.id_usuario = :id AND DATE_FORMAT(c.fecha, "%Y-%m") = :mes'
+    );
+    $stmt->execute(['id' => $userId, 'mes' => $mes]);
+    $cirugias = (int)$stmt->fetchColumn();
+
+    $inicio = $mes . '-01';
+    $fin = date('Y-m-t', strtotime($inicio));
+    $stmt = db()->prepare(
+        'SELECT COUNT(*)
+         FROM novedades
+         WHERE id_usuario = :id AND fecha_desde <= :fin
+           AND (fecha_hasta IS NULL OR fecha_hasta >= :inicio)'
+    );
+    $stmt->execute(['id' => $userId, 'fin' => $fin, 'inicio' => $inicio]);
+    $novedades = (int)$stmt->fetchColumn();
+
+    return [
+        'fichajes' => (int)$f['fichajes'],
+        'dias' => (int)$f['dias'],
+        'horas' => (float)$f['horas'],
+        'cirugias' => $cirugias,
+        'novedades' => $novedades,
+    ];
 }
 
 function today_cirurgies(int $userId): array

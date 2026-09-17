@@ -7,6 +7,7 @@ require_once __DIR__ . '/../src/functions.php';
 $user = require_login();
 if ((int)$user['es_admin'] === 1) { header('Location: admin/panel.php'); exit; }
 $fichaje = today_fichaje($user['id']);
+$fichajesHoy = today_fichajes($user['id']);
 $hours = month_hours($user['id']);
 $surgeries = today_cirurgies($user['id']);
 
@@ -50,12 +51,20 @@ require __DIR__ . '/partials/header.php';
             </tr>
         </thead>
         <tbody>
-            <?php if ($fichaje && $fichaje['hora_entrada']): ?>
+            <?php foreach ($fichajesHoy as $f): ?>
+                <?php if ($f['hora_entrada']): ?>
                 <tr>
                     <td>Entrada</td>
-                    <td><?= e(substr($fichaje['hora_entrada'], 0, 5)) ?></td>
+                    <td><?= e(substr($f['hora_entrada'], 0, 5)) ?></td>
                 </tr>
-            <?php endif; ?>
+                <?php endif; ?>
+                <?php if ($f['hora_salida']): ?>
+                <tr>
+                    <td>Salida</td>
+                    <td><?= e(substr($f['hora_salida'], 0, 5)) ?></td>
+                </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
 
             <?php foreach ($surgeries as $surgery): ?>
                 <tr>
@@ -64,11 +73,20 @@ require __DIR__ . '/partials/header.php';
                 </tr>
             <?php endforeach; ?>
 
-            <?php if (!$fichaje && !$surgeries): ?>
+            <?php if (!$fichajesHoy && !$surgeries): ?>
                 <tr><td colspan="2">No hay actividades registradas.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
 </section>
+
+<div id="okOverlay" class="ok-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="okTitle">
+    <div class="ok-card">
+        <div class="ok-icon"><?= icon('check', 42) ?></div>
+        <h2 id="okTitle">REGISTRO CORRECTO</h2>
+        <p class="ok-time" id="okTime">--:--</p>
+        <button id="okContinue" class="btn primary" type="button">Continuar</button>
+    </div>
+</div>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>

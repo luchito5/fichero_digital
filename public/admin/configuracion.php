@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $err = '';
             if ($nombreCompleto === '') $err = 'Completá el nombre completo.';
             elseif ($dni === '') $err = 'Completá el DNI.';
+            elseif ($nueva !== '' && $confirmar === '') $err = 'Tenés que confirmar tu contraseña';
             elseif ($nueva !== '' && strlen($nueva) < 8) $err = 'La nueva contraseña debe tener al menos 8 caracteres.';
             elseif ($nueva !== $confirmar) $err = 'Las contraseñas no coinciden.';
 
@@ -78,7 +79,7 @@ require __DIR__ . '/partials/header.php';
 <div class="contract-preview" style="margin-bottom:14px;">
 <?php foreach ($tipos as $tipo): ?>
 <span class="tag fixed"><?= e($tipo['nombre']) ?>
-<form class="inline-form" method="post" onsubmit="return confirm('¿Eliminar definitivamente este tipo de procedimiento? Esta acción no se puede deshacer.');"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="action" value="tipo_eliminar"><input type="hidden" name="id" value="<?= (int)$tipo['id_tipo_proc'] ?>"><button type="submit" class="act-del" title="Eliminar tipo"><?= icon('trash') ?></button></form>
+<form class="inline-form" method="post" onsubmit="return confirm('¿Eliminar definitivamente este tipo de procedimiento? Esta acción no se puede deshacer.');"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="action" value="tipo_eliminar"><input type="hidden" name="id" value="<?= (int)$tipo['id_tipo_proc'] ?>"><button type="submit" class="act-del" style="background:transparent;border:0;padding:0;cursor:pointer;color:#fff;margin-left:8px;" title="Eliminar tipo" aria-label="Eliminar tipo"><?= icon('trash') ?></button></form>
 </span>
 <?php endforeach; ?>
 </div>

@@ -9,3 +9,6 @@ const DB_PASS = '';
 const SESSION_NAME = 'AMEMT_SESSION';
 const APP_NAME = 'AMEMT - Fichero Digital';
 const BASE_URL = '/fichero_digital/public';
+const APP_TIMEZONE = 'America/Argentina/Buenos_Aires';
+
+date_default_timezone_set(APP_TIMEZONE);

@@ -151,7 +151,7 @@ $baseQ = http_build_query(array_filter(['mes' => $mes, 'empleado' => $idEmp ?: n
                                     array_map(fn ($r) => [
                                         $r['fecha'], $r['entrada'] ?? '-', $r['salida'] ?? '-',
                                         $r['horas_trabajadas'] !== null ? $fmtH((float)$r['horas_trabajadas']) . ' h' : '-',
-                                        (int)$r['validado_admin'] ? 'Sí' : 'No',
+                                        estado_validacion((int)$r['validado_admin'])['texto'],
                                     ], $df),
                                     [0.28, 0.17, 0.17, 0.20, 0.18],
                                     5
@@ -196,7 +196,7 @@ $baseQ = http_build_query(array_filter(['mes' => $mes, 'empleado' => $idEmp ?: n
             $r['fecha'], $r['empleado'], $r['tipo_contrato'],
             $r['entrada'] ?? '-', $r['salida'] ?? '-',
             $r['horas_trabajadas'] !== null ? $fmtH((float)$r['horas_trabajadas']) . ' h' : '-',
-            (int)$r['validado_admin'] ? 'Sí' : 'No',
+            estado_validacion((int)$r['validado_admin'])['texto'],
         ], $fichajes),
         [0.15, 0.24, 0.14, 0.11, 0.11, 0.11, 0.14],
         7

@@ -125,6 +125,12 @@ input {
     outline: none;
 }
 
+.field-message {
+    color: #ff9d9d;
+    font-size: 12px;
+    margin: 5px 0 0;
+}
+
 .hidden {
     display: none;
 }
@@ -407,6 +413,34 @@ td { padding:9px; border-top:1px solid rgba(255,255,255,.12); font-size:13px; }
 .contract-options .tag:has(input:checked) { opacity:1; border-color:#fff; }
 .contract-options .tag:has(input:focus-visible) { outline:2px solid #fff; outline-offset:2px; }
 .contract-options input { position:absolute; opacity:0; width:1px; height:1px; }
+/* ===== Validación de fichajes ===== */
+.val-form { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.val-form input.obs-input { flex:1; min-width:150px; background:#153e45; color:#f4f6f8; border:1px solid #27636b; border-radius:4px; padding:7px 9px; font-size:12px; }
+.val-form input.obs-input::placeholder { color:#7da0a6; }
+.val-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex:none; border:0; border-radius:50%; color:#fff; cursor:pointer; transition:background .15s ease; }
+.val-btn .ic { margin:0; }
+.val-btn.ok { background:#2ea83f; }
+.val-btn.ok:hover { background:#39ba4c; }
+.val-btn.no { background:#d52b2b; }
+.val-btn.no:hover { background:#e04949; }
+.val-btn.pend { width:auto; padding:0 12px; gap:6px; border-radius:17px; background:#c98a00; font-size:12px; font-weight:700; white-space:nowrap; }
+.val-btn.pend:hover { background:#e0a000; }
+.status.pending { background:#c98a00; color:#fff; }
+.val-obs { display:block; margin-top:6px; color:var(--muted); font-size:11px; max-width:240px; }
+
+/* ===== Resumen del empleado ===== */
+.resumen-filter { display:flex; gap:10px; align-items:center; margin:0; }
+.resumen-filter input { width:auto; background:#153e45; color:#f4f6f8; border:1px solid #27636b; border-radius:4px; padding:9px 10px; font-size:13px; }
+
+/* ===== Confirmación de fichaje ===== */
+.ok-overlay { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(9,17,26,.82); }
+.ok-overlay.hidden { display:none; }
+.ok-card { width:100%; max-width:420px; background:#075d65; border:1px solid #079bb5; border-radius:14px; padding:38px 42px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.55); animation:ok-pop .18s ease-out; }
+.ok-card .ok-icon { width:78px; height:78px; margin:0 auto 18px; border-radius:50%; background:#2ea83f; display:flex; align-items:center; justify-content:center; color:#fff; }
+.ok-card .ok-icon .ic { margin:0; width:42px; height:42px; }
+.ok-card h2 { margin:0 0 10px; font-size:20px; letter-spacing:.5px; line-height:1.3; }
+.ok-card .ok-time { font-size:42px; font-weight:bold; margin:0 0 22px; color:#8fe0f0; }
+@keyframes ok-pop { from { transform:scale(.92); opacity:0; } to { transform:scale(1); opacity:1; } }
 @media (max-width:850px) { .admin-stats{grid-template-columns:1fr 1fr;} .report-stats{grid-template-columns:repeat(3,1fr);} .app{grid-template-columns:180px 1fr;} }
 @media (min-width:651px) and (max-width:850px) { .sidebar{padding:20px 12px;} .side-brand{margin-bottom:18px;} .sidebar h2{font-size:13px;margin-bottom:8px;} .sidebar a{padding:9px 10px;font-size:13px;margin-bottom:3px;} .content{padding:22px 4%;} .cards{gap:14px;} .stat strong{font-size:24px;} .topbar h1{font-size:21px;} .topbar{gap:10px;} .panel h2{font-size:15px;padding:12px 14px;} th,td{font-size:12px;padding:7px 8px;} .actions{gap:10px;}}
 @media (max-width:650px) { .app{display:block;} .admin-app .sidebar{min-height:auto;} .admin-app .sidebar nav{display:grid;grid-template-columns:1fr 1fr;} .admin-app .sidebar a{margin-bottom:3px;} .admin-stats,.report-stats,.form-grid,.form-grid3,.filters,.report-filters{grid-template-columns:1fr;} .content{padding:22px 15px;} .topbar{gap:10px;} }

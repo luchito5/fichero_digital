@@ -41,6 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'La contraseña es incorrecta.';
     }
 }
+
+$dniValue = (string)($_POST['dni'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -65,15 +67,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label for="dni">DNI</label>
             <input id="dni" name="dni" type="text" inputmode="numeric"
-                   maxlength="20" required autocomplete="username"
-                   <?= $errorField === 'dni' ? 'class="field-error" aria-invalid="true"' : '' ?>>
+                   maxlength="20" required autocomplete="username" value="<?= e($dniValue) ?>"
+                   class="<?= $errorField === 'dni' ? 'field-error' : '' ?>"
+                   <?= $errorField === 'dni' ? 'aria-invalid="true" autofocus' : '' ?>>
+            <?php if ($error && $errorField === 'dni'): ?>
+                <p class="field-message"><?= e($error) ?></p>
+            <?php endif; ?>
 
             <label for="password">Contraseña</label>
             <input id="password" name="password" type="password"
                    required autocomplete="current-password"
-                   <?= $errorField === 'password' ? 'class="field-error" aria-invalid="true"' : '' ?>>
+                   class="<?= $errorField === 'password' ? 'field-error' : '' ?>"
+                   <?= $errorField === 'password' ? 'aria-invalid="true" autofocus' : '' ?>>
+            <?php if ($error && $errorField === 'password'): ?>
+                <p class="field-message"><?= e($error) ?></p>
+            <?php endif; ?>
 
-            <?php if ($error): ?>
+            <?php if ($error && $errorField === ''): ?>
                 <p class="alert error"><?= e($error) ?></p>
             <?php endif; ?>
 
