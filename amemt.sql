@@ -512,7 +512,6 @@ CREATE TABLE `usuarios` (
   `especialidad` varchar(150) DEFAULT NULL,
   `id_tipo_personal` int(11) DEFAULT NULL,
   `tipo_contrato` varchar(30) NOT NULL,
-  `username` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `es_admin` tinyint(1) NOT NULL DEFAULT 0,
   `activo` tinyint(1) NOT NULL DEFAULT 1,
@@ -524,18 +523,18 @@ CREATE TABLE `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id_usuario`, `nombre`, `apellido`, `dni`, `especialidad`, `id_tipo_personal`, `tipo_contrato`, `username`, `password_hash`, `es_admin`, `activo`, `sesion_token`, `created_at`) VALUES
-(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '30111222', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, '5183350b7a50f9c90f3a3b9945f5ac18e3bd02f0ba014643993623c3bb9d6171', '2026-09-09 21:21:39'),
-(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', 'mgomez', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, 'c17ab904b89e77ff6c082a723cf025d94ef1f37320eea97b3e317f89a99c5816', '2026-09-09 21:21:39'),
-(3, 'Carlos', 'Rodríguez', '32333444', 'Enfermero', 3, 'Fijo', 'crodriguez', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, '4af35b3c5db5d9e70aea7ac8d2effc26058f944378ce42ede300748e122a8b73', '2026-09-09 21:21:39'),
-(4, 'Lucía', 'Fernández', '33444555', 'Administrativo', 4, 'Admin', 'lfernandez', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 1, 1, '62944384ce656497da0f794b607b1891a1d45140113845dc071546bb41ce5986', '2026-09-09 21:21:39'),
-(5, 'Pedro', 'Martínez', '34555666', 'Mantenimiento', 5, 'Alquiler', 'pmartinez', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:21:39'),
-(6, 'Nicolas', 'Fortunato', '48228401', 'Cirujano', 1, 'Por Hora', '48228401', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:45:10'),
-(8, 'Quique', 'Laloz', '18999000', 'Instrumentador', 6, 'Alquiler', '18999000', '$2y$10$6plrgFXTOP6BR7yGMs0PQ.JDvD8riAzm3npfirdd4TrVLkWFT5d2K', 0, 1, NULL, '2026-09-09 22:31:13'),
-(9, 'Lucrecia', 'Gutierrez', '30300300', 'Instrumentador', 6, 'Por Cirugía', '30300300', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 22:38:54'),
-(10, 'Ricardo', 'Gómez', '40400400', 'Cirujano', 1, 'Por Cirugía', '40400400', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 22:39:21'),
-(12, 'Leandro', 'Lopez', '40600700', 'Cirujano', 1, 'Fijo', '40600700', '/ZoAZugbOZtq.ke/v9guPonbPMp4NbQaHtqzBiK1XKESE/Mzrze', 0, 1, NULL, '2026-09-15 17:18:22'),
-(13, 'Jose', 'Lopez', '44839066', 'Instrumentador', 6, 'Fijo', '44839066', '$2y$10$8DFgaX/qbKy3mejHqINUhOeBUQRDVGr80RqqZr53JCWA3.czvXeYq', 0, 1, NULL, '2026-09-15 16:44:35');
+INSERT INTO `usuarios` (`id_usuario`, `nombre`, `apellido`, `dni`, `especialidad`, `id_tipo_personal`, `tipo_contrato`, `password_hash`, `es_admin`, `activo`, `sesion_token`, `created_at`) VALUES
+(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, '5183350b7a50f9c90f3a3b9945f5ac18e3bd02f0ba014643993623c3bb9d6171', '2026-09-09 21:21:39'),
+(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, 'c17ab904b89e77ff6c082a723cf025d94ef1f37320eea97b3e317f89a99c5816', '2026-09-09 21:21:39'),
+(3, 'Carlos', 'Rodríguez', '32333444', 'Enfermero', 3, 'Fijo', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, '4af35b3c5db5d9e70aea7ac8d2effc26058f944378ce42ede300748e122a8b73', '2026-09-09 21:21:39'),
+(4, 'Lucía', 'Fernández', '33444555', 'Administrativo', 4, 'Admin', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 1, 1, '62944384ce656497da0f794b607b1891a1d45140113845dc071546bb41ce5986', '2026-09-09 21:21:39'),
+(5, 'Pedro', 'Martínez', '34555666', 'Mantenimiento', 5, 'Alquiler', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:21:39'),
+(6, 'Nicolas', 'Fortunato', '48228401', 'Cirujano', 1, 'Por Hora', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:45:10'),
+(8, 'Quique', 'Laloz', '18999000', 'Instrumentador', 6, 'Alquiler', '$2y$10$6plrgFXTOP6BR7yGMs0PQ.JDvD8riAzm3npfirdd4TrVLkWFT5d2K', 0, 1, NULL, '2026-09-09 22:31:13'),
+(9, 'Lucrecia', 'Gutierrez', '30300300', 'Instrumentador', 6, 'Por Cirugía', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 22:38:54'),
+(10, 'Ricardo', 'Gómez', '40400400', 'Cirujano', 1, 'Por Cirugía', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 22:39:21'),
+(12, 'Leandro', 'Lopez', '40600700', 'Cirujano', 1, 'Fijo', '/ZoAZugbOZtq.ke/v9guPonbPMp4NbQaHtqzBiK1XKESE/Mzrze', 0, 1, NULL, '2026-09-15 17:18:22'),
+(13, 'Jose', 'Lopez', '44839066', 'Instrumentador', 6, 'Fijo', '$2y$10$8DFgaX/qbKy3mejHqINUhOeBUQRDVGr80RqqZr53JCWA3.czvXeYq', 0, 1, NULL, '2026-09-15 16:44:35');
 
 --
 -- Índices para tablas volcadas
@@ -621,7 +620,6 @@ ALTER TABLE `tipos_procedimiento`
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id_usuario`),
   ADD UNIQUE KEY `dni` (`dni`),
-  ADD UNIQUE KEY `username` (`username`),
   ADD KEY `fk_usuarios_tipo_personal` (`id_tipo_personal`);
 
 --

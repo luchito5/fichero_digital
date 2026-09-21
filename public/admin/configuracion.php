@@ -41,20 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = $err;
             } else {
                 try {
-                    $stmt = db()->prepare('SELECT COUNT(*) FROM usuarios WHERE (dni = :d OR username = :u) AND id_usuario <> :id');
-                    $stmt->execute(['d' => $dni, 'u' => $dni, 'id' => $user['id']]);
+                    $stmt = db()->prepare('SELECT COUNT(*) FROM usuarios WHERE dni = :d AND id_usuario <> :id');
+                    $stmt->execute(['d' => $dni, 'id' => $user['id']]);
                     if ((int)$stmt->fetchColumn() > 0) {
                         $error = 'Ese DNI ya existe.';
                     } else {
-                        $stmt = db()->prepare('UPDATE usuarios SET nombre = :n, apellido = :a, dni = :d, username = :d2 WHERE id_usuario = :id');
-                        $stmt->execute(['n' => $nombre, 'a' => $apellido, 'd' => $dni, 'd2' => $dni, 'id' => $user['id']]);
+                        $stmt = db()->prepare('UPDATE usuarios SET nombre = :n, apellido = :a, dni = :d WHERE id_usuario = :id');
+                        $stmt->execute(['n' => $nombre, 'a' => $apellido, 'd' => $dni, 'id' => $user['id']]);
                         if ($nueva !== '') {
                             db()->prepare('UPDATE usuarios SET password_hash = :p WHERE id_usuario = :id')->execute(['p' => password_hash($nueva, PASSWORD_DEFAULT), 'id' => $user['id']]);
                         }
                         $_SESSION['user']['nombre'] = $nombre;
                         $_SESSION['user']['apellido'] = $apellido;
                         $_SESSION['user']['dni'] = $dni;
-                        $_SESSION['user']['username'] = $dni;
                         registrar_auditoria((int)$user['id'], 'cuenta_editada', 'Configuración');
                         $ok = 'Mi cuenta actualizada.';
                     }

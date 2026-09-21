@@ -11,7 +11,7 @@ function login_user(string $dni, string $password): string
     $dni = trim($dni);
     if ($dni === '' || $password === '') return 'dni';
 
-    $stmt = db()->prepare('SELECT id_usuario,nombre,apellido,dni,username,password_hash,es_admin,activo FROM usuarios WHERE dni=:dni AND activo=1 LIMIT 1');
+    $stmt = db()->prepare('SELECT id_usuario,nombre,apellido,dni,password_hash,es_admin,activo FROM usuarios WHERE dni=:dni AND activo=1 LIMIT 1');
     $stmt->execute(['dni' => $dni]);
     $user = $stmt->fetch();
 
@@ -33,7 +33,6 @@ function login_user(string $dni, string $password): string
         'nombre' => $user['nombre'],
         'apellido' => $user['apellido'],
         'dni' => $user['dni'],
-        'username' => $user['username'],
         'es_admin' => (int)$user['es_admin'],
     ];
     $_SESSION['sesion_token'] = $token;

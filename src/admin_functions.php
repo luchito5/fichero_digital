@@ -17,7 +17,7 @@ function admin_dashboard_stats(): array
 
 function present_employees_today(): array
 {
-    $sql = "SELECT u.id_usuario,u.nombre,u.apellido,u.username,u.especialidad,u.tipo_contrato,
+    $sql = "SELECT u.id_usuario,u.nombre,u.apellido,u.especialidad,u.tipo_contrato,
                    f.hora_entrada,f.hora_salida
             FROM fichajes f
             INNER JOIN usuarios u ON u.id_usuario=f.id_usuario
@@ -61,7 +61,7 @@ function validar_fichaje(int $idFichaje, int $idAdmin): array
         db()->prepare(
             'UPDATE fichajes
              SET validado_admin = 1, validado_por = :adm,
-                 obs_validacion = COALESCE(NULLIF(obs_validacion, ""), "Validado por administración")
+                 obs_validacion = "Validado por administración"
              WHERE id_fichaje = :id'
         )->execute(['adm' => $idAdmin, 'id' => $idFichaje]);
         registrar_auditoria($idAdmin, 'fichaje_validado', 'ID ' . $idFichaje);
@@ -72,7 +72,7 @@ function validar_fichaje(int $idFichaje, int $idAdmin): array
     }
 }
 
-function corregir_fichaje(int $idFichaje, string $entrada, string $salida, string $obs, int $idAdmin): array
+function corregir_fichaje(int $idFichaje, string $entrada, string $salida, int $idAdmin): array
 {
     if ($idFichaje <= 0) return ['ok' => false, 'message' => 'Fichaje inválido.'];
     $entrada = trim($entrada);
@@ -85,15 +85,14 @@ function corregir_fichaje(int $idFichaje, string $entrada, string $salida, strin
     if ($difMin > 1440) {
         return ['ok' => false, 'message' => 'El registro no puede superar las 24 horas.'];
     }
-    $obs = mb_substr(trim($obs), 0, 255);
     try {
         db()->prepare(
             'UPDATE fichajes
              SET hora_entrada = :e, hora_salida = :s,
                  horas_trabajadas = :hs, validado_admin = 1, validado_por = :adm,
-                 obs_validacion = NULLIF(:obs, "")
+                 obs_validacion = "Validado por administración"
              WHERE id_fichaje = :id'
-        )->execute(['e' => $entrada, 's' => $salida, 'hs' => round($difMin / 60, 2), 'obs' => $obs, 'adm' => $idAdmin, 'id' => $idFichaje]);
+        )->execute(['e' => $entrada, 's' => $salida, 'hs' => round($difMin / 60, 2), 'adm' => $idAdmin, 'id' => $idFichaje]);
         registrar_auditoria($idAdmin, 'fichaje_corregido', 'ID ' . $idFichaje);
         return ['ok' => true];
     } catch (PDOException $e) {
@@ -102,21 +101,20 @@ function corregir_fichaje(int $idFichaje, string $entrada, string $salida, strin
     }
 }
 
-function corregir_entrada(int $idFichaje, string $entrada, string $obs, int $idAdmin): array
+function corregir_entrada(int $idFichaje, string $entrada, int $idAdmin): array
 {
     if ($idFichaje <= 0) return ['ok' => false, 'message' => 'Fichaje inválido.'];
     $entrada = trim($entrada);
     if (!preg_match('/^\d{2}:\d{2}$/', $entrada)) {
         return ['ok' => false, 'message' => 'Completá la hora de entrada (HH:MM).'];
     }
-    $obs = mb_substr(trim($obs), 0, 255);
     try {
         db()->prepare(
             'UPDATE fichajes
              SET hora_entrada = :e, validado_admin = 1, validado_por = :adm,
-                 obs_validacion = NULLIF(:obs, "")
+                 obs_validacion = "Validado por administración"
              WHERE id_fichaje = :id'
-        )->execute(['e' => $entrada, 'obs' => $obs, 'adm' => $idAdmin, 'id' => $idFichaje]);
+        )->execute(['e' => $entrada, 'adm' => $idAdmin, 'id' => $idFichaje]);
         registrar_auditoria($idAdmin, 'fichaje_entrada_corregida', 'ID ' . $idFichaje);
         return ['ok' => true];
     } catch (PDOException $e) {
@@ -248,20 +246,19 @@ function validar_fichaje_estado(int $idFichaje, int $estado, string $obs, int $i
 
 function list_employees(string $search = '', string $contract = ''): array
 {
-    $sql = "SELECT u.id_usuario,u.nombre,u.apellido,u.dni,u.especialidad,u.tipo_contrato,u.username,u.activo,
+    $sql = "SELECT u.id_usuario,u.nombre,u.apellido,u.dni,u.especialidad,u.tipo_contrato,u.activo,
                    tp.nombre AS tipo_personal
             FROM usuarios u
             LEFT JOIN tipos_personal tp ON tp.id_tipo=u.id_tipo_personal
             WHERE 1=1";
     $params = [];
     if ($search !== '') {
-        $sql .= " AND (u.nombre LIKE :search1 OR u.apellido LIKE :search2 OR u.username LIKE :search3 OR u.dni LIKE :search4)";
+        $sql .= " AND (u.nombre LIKE :search1 OR u.apellido LIKE :search2 OR u.dni LIKE :search3)";
         
         $value = '%' . $search . '%';
         $params['search1'] = $value;
         $params['search2'] = $value;
         $params['search3'] = $value;
-        $params['search4'] = $value;
     }
 
     if ($contract !== '') {
@@ -305,11 +302,11 @@ function create_employee(array $data): array
     $pdo=db();
     try {
         $dni = trim((string)$data['dni']);
-        $stmt=$pdo->prepare('SELECT COUNT(*) FROM usuarios WHERE dni=:dni OR username=:username');
-        $stmt->execute(['dni'=>$dni,'username'=>$dni]);
+        $stmt=$pdo->prepare('SELECT COUNT(*) FROM usuarios WHERE dni=:dni');
+        $stmt->execute(['dni'=>$dni]);
         if ((int)$stmt->fetchColumn()>0) return ['ok'=>false,'message'=>'El DNI ya existe.'];
 
-            $stmd=$pdo->prepare('INSERT INTO usuarios (nombre,apellido,dni,especialidad,id_tipo_personal,tipo_contrato,username,password_hash) VALUES (:nombre, :apellido, :dni, :especialidad, :tipo, :contrato, :username, :password)');
+            $stmd=$pdo->prepare('INSERT INTO usuarios (nombre,apellido,dni,especialidad,id_tipo_personal,tipo_contrato,password_hash) VALUES (:nombre, :apellido, :dni, :especialidad, :tipo, :contrato, :password)');
             $stmd->execute([
             'nombre' => trim($data['nombre']),
             'apellido' => trim($data['apellido']),
@@ -317,7 +314,6 @@ function create_employee(array $data): array
             'especialidad' => $especialidad,
             'tipo' => (int)$data['id_tipo_personal'],
             'contrato' => $contract,
-            'username' => $dni,
             'password' => password_hash(trim($data['password']), PASSWORD_DEFAULT)
     ]);
     
@@ -344,11 +340,11 @@ function update_employee(int $id,array $data): array
     $dni = trim((string)$data['dni']);
     if ($dni === '') return ['ok'=>false,'message'=>'Completá el DNI.'];
     try {
-        $stmt=db()->prepare('UPDATE usuarios SET nombre=:nombre,apellido=:apellido,dni=:dni,especialidad=:especialidad,id_tipo_personal=:tipo,tipo_contrato=:contrato,username=:username,activo=:activo WHERE id_usuario=:id');
+        $stmt=db()->prepare('UPDATE usuarios SET nombre=:nombre,apellido=:apellido,dni=:dni,especialidad=:especialidad,id_tipo_personal=:tipo,tipo_contrato=:contrato,activo=:activo WHERE id_usuario=:id');
         $stmt->execute([
             'nombre'=>trim($data['nombre']),'apellido'=>trim($data['apellido']),'dni'=>$dni,
             'especialidad'=>$especialidad,'tipo'=>$tipo,'contrato'=>$data['tipo_contrato'],
-            'username'=>$dni,'activo'=>(int)($data['activo'] ?? $employee['activo']),'id'=>$id
+            'activo'=>(int)($data['activo'] ?? $employee['activo']),'id'=>$id
         ]);
         if (trim((string)($data['password']??'')) !== '') {
             if (strlen($data['password'])<8) return ['ok'=>false,'message'=>'La nueva contraseña debe tener al menos 8 caracteres.'];

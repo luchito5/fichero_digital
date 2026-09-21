@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
     especialidad VARCHAR(150),
     tipo_contrato VARCHAR(30) NOT NULL DEFAULT 'Fijo',
     id_tipo_personal INT,
-    username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     es_admin TINYINT(1) NOT NULL DEFAULT 0,
     activo TINYINT(1) NOT NULL DEFAULT 1,

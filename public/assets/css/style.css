@@ -332,16 +332,28 @@ td {
 
 .fichaje-delayed { background:#3a1414; }
 .status.delayed { background:#d52b2b; color:#fff; }
-.inline-corregir { display:inline-block; margin-left:8px; vertical-align:middle; position:relative; }
-.inline-corregir summary { display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:#4fc3dc; font-size:13px; font-weight:700; list-style:none; }
-.inline-corregir summary::-webkit-details-marker { display:none; }
-.inline-corregir[open] summary { color:#8fe0f0; }
-.inline-corregir .corregir-form { position:absolute; right:0; top:100%; z-index:20; width:250px; background:#075d65; border:1px solid #27636b; border-radius:8px; padding:14px; margin-top:8px; box-shadow:0 8px 20px rgba(0,0,0,.45); }
-.inline-corregir .corregir-form label { display:block; color:#dce9eb; font-size:12px; margin:8px 0 4px; }
-.inline-corregir .corregir-form input { margin-bottom:4px; }
-.inline-corregir .corregir-form .btn { margin-top:10px; }
-.inline-corregir .corregir-actions { display:flex; gap:8px; margin-top:12px; }
-.inline-corregir .corregir-actions .btn { margin-top:0; width:auto; flex:1; }
+/* ===== Corrección de fichajes pendientes de salida ===== */
+.section-sub { margin:4px 0 0; color:var(--muted); font-size:13px; max-width:680px; }
+.section-sub strong { color:#dce9eb; }
+.row-actions { display:flex; align-items:center; gap:10px; }
+.corregir-toggle.active { color:#8fe0f0; text-decoration:underline; }
+.corregir-row { display:none; }
+.corregir-row.open { display:table-row; }
+.corregir-row > td { padding:16px; background:#063e44; border:0; }
+.corregir-hint { color:#7da0a6; font-size:11px; display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; }
+.corregir-hint .ic { margin:0; }
+.corregir-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+.corregir-fields { display:flex; flex-wrap:wrap; gap:14px; flex:1; min-width:280px; }
+.corregir-field { display:flex; flex-direction:column; gap:5px; min-width:140px; }
+.corregir-field label { color:#dce9eb; font-size:12px; font-weight:600; }
+.corregir-field label small { color:#7da0a6; font-weight:400; }
+.corregir-field input { background:#153e45; color:#f4f6f8; border:1px solid #27636b; border-radius:4px; padding:8px 10px; font-family:inherit; font-size:13px; }
+.corregir-field input::placeholder { color:#7da0a6; }
+.corregir-obs { flex:1; min-width:220px; }
+.corregir-actions { display:flex; align-items:center; gap:8px; }
+.corregir-actions .btn { margin-top:0; }
+.stat-alert { border:1px solid rgba(213,43,43,.5); }
+.stat-alert strong { color:#ff8a8a; }
 .admin-stats { grid-template-columns:repeat(4,1fr); }
 .admin-stats .stat { min-height:105px; }
 .report-stats { grid-template-columns:repeat(6,1fr); }
@@ -444,3 +456,10 @@ td { padding:9px; border-top:1px solid rgba(255,255,255,.12); font-size:13px; }
 @media (max-width:850px) { .admin-stats{grid-template-columns:1fr 1fr;} .report-stats{grid-template-columns:repeat(3,1fr);} .app{grid-template-columns:180px 1fr;} }
 @media (min-width:651px) and (max-width:850px) { .sidebar{padding:20px 12px;} .side-brand{margin-bottom:18px;} .sidebar h2{font-size:13px;margin-bottom:8px;} .sidebar a{padding:9px 10px;font-size:13px;margin-bottom:3px;} .content{padding:22px 4%;} .cards{gap:14px;} .stat strong{font-size:24px;} .topbar h1{font-size:21px;} .topbar{gap:10px;} .panel h2{font-size:15px;padding:12px 14px;} th,td{font-size:12px;padding:7px 8px;} .actions{gap:10px;}}
 @media (max-width:650px) { .app{display:block;} .admin-app .sidebar{min-height:auto;} .admin-app .sidebar nav{display:grid;grid-template-columns:1fr 1fr;} .admin-app .sidebar a{margin-bottom:3px;} .admin-stats,.report-stats,.form-grid,.form-grid3,.filters,.report-filters{grid-template-columns:1fr;} .content{padding:22px 15px;} .topbar{gap:10px;} }
+
+/* ===== Paginación de tablas ===== */
+.pagination { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 0 4px; }
+.page-btn { border:1px solid #27636b; background:#0e4d55; color:#f4f6f8; border-radius:4px; padding:8px 14px; font-family:inherit; font-size:13px; cursor:pointer; transition:background .15s ease, border-color .15s ease; }
+.page-btn:hover:not(:disabled) { background:#11616a; border-color:#2f7a85; }
+.page-btn:disabled { opacity:.45; cursor:default; }
+.page-info { color:#9fc3c9; font-size:12px; }
