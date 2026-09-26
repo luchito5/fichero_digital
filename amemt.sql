@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 21-09-2026 a las 18:17:39
+-- Tiempo de generación: 26-09-2026 a las 22:27:39
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -35,6 +35,7 @@ CREATE TABLE `alquileres` (
   `fecha` date NOT NULL,
   `hora_entrada` time DEFAULT NULL,
   `hora_salida` time DEFAULT NULL,
+  `hora_salida_confirmada` tinyint(1) NOT NULL DEFAULT 0,
   `horas_uso` decimal(10,2) DEFAULT NULL,
   `dato_facturacion` text DEFAULT NULL,
   `registrado_por` int(11) NOT NULL
@@ -44,11 +45,11 @@ CREATE TABLE `alquileres` (
 -- Volcado de datos para la tabla `alquileres`
 --
 
-INSERT INTO `alquileres` (`id_alquiler`, `id_usuario`, `nombre_responsable`, `institucion`, `fecha`, `hora_entrada`, `hora_salida`, `horas_uso`, `dato_facturacion`, `registrado_por`) VALUES
-(1, 1, NULL, NULL, '2026-09-07', '18:00:00', '20:00:00', 2.00, 'Facturado - Transferencia', 4),
-(2, 2, NULL, NULL, '2026-09-07', '14:00:00', '17:30:00', 3.50, 'Facturado - Efectivo', 4),
-(3, 3, NULL, NULL, '2026-09-08', '17:00:00', '19:00:00', 2.00, 'Pendiente de facturación', 4),
-(4, NULL, 'Dr. Test', 'Clinica Test', '2026-09-16', '09:00:00', '11:00:00', 2.00, 'Facturado', 1);
+INSERT INTO `alquileres` (`id_alquiler`, `id_usuario`, `nombre_responsable`, `institucion`, `fecha`, `hora_entrada`, `hora_salida`, `hora_salida_confirmada`, `horas_uso`, `dato_facturacion`, `registrado_por`) VALUES
+(1, 1, NULL, NULL, '2026-09-07', '18:00:00', '20:00:00', 0, 2.00, 'Facturado - Transferencia', 4),
+(2, 2, NULL, NULL, '2026-09-07', '14:00:00', '17:30:00', 0, 3.50, 'Facturado - Efectivo', 4),
+(3, 3, NULL, NULL, '2026-09-08', '17:00:00', '19:00:00', 0, 2.00, 'Pendiente de facturación', 4),
+(4, NULL, 'Dr. Test', 'Clinica Test', '2026-09-16', '09:00:00', '11:30:00', 1, 2.50, 'Facturado', 1);
 
 -- --------------------------------------------------------
 
@@ -302,7 +303,22 @@ INSERT INTO `auditoria` (`id`, `fecha`, `id_usuario`, `accion`, `detalle`, `ip`)
 (288, '2026-09-18 19:40:17', 2, 'login', 'Ingreso correcto', '::1'),
 (289, '2026-09-21 12:49:53', 1, 'login', 'Ingreso correcto', '::1'),
 (290, '2026-09-21 13:03:32', 1, 'fichaje_a_pendiente', 'ID 30', '::1'),
-(291, '2026-09-21 13:03:38', 1, 'fichaje_aprobado', 'ID 30 - Validado por administración', '::1');
+(291, '2026-09-21 13:03:38', 1, 'fichaje_aprobado', 'ID 30 - Validado por administración', '::1'),
+(292, '2026-09-26 12:44:52', 1, 'login', 'Ingreso correcto', '::1'),
+(293, '2026-09-26 12:58:01', NULL, 'novedades_purgadas', '3 novedad(es) con fecha hasta vencida', ''),
+(294, '2026-09-26 13:29:13', 1, 'novedades_purgadas', '3 novedad(es) con fecha hasta vencida', '::1'),
+(295, '2026-09-26 13:36:25', 2, 'login', 'Ingreso correcto', '::1'),
+(304, '2026-09-26 13:46:00', 1, 'login', 'Ingreso correcto', '::1'),
+(305, '2026-09-26 13:46:22', 1, 'cirugia_actualizada', 'ID 3', '::1'),
+(306, '2026-09-26 13:46:31', 1, 'cirugia_actualizada', 'ID 3', '::1'),
+(307, '2026-09-26 13:46:43', 1, 'novedad_actualizada', 'ID 5', '::1'),
+(308, '2026-09-26 13:48:24', 1, 'alquiler_actualizado', 'ID 4', '::1'),
+(316, '2026-09-26 14:01:18', 1, 'alquiler_actualizado', 'ID 4', '::1'),
+(317, '2026-09-26 14:01:29', 1, 'alquiler_salida_confirmada', 'ID 4 - 11:30', '::1'),
+(318, '2026-09-26 14:01:33', 1, 'alquiler_salida_confirmada', 'ID 4 - 11:30', '::1'),
+(319, '2026-09-26 14:03:05', 1, 'alquiler_salida_confirmada', 'ID 4 - 11:30', '::1'),
+(320, '2026-09-26 14:30:43', 1, 'login', 'Ingreso correcto', '::1'),
+(321, '2026-09-26 14:30:58', 1, 'empleado_editado', 'ID 4', '::1');
 
 -- --------------------------------------------------------
 
@@ -325,7 +341,7 @@ CREATE TABLE `cirugias` (
 --
 
 INSERT INTO `cirugias` (`id_cirugia`, `fecha`, `hora_inicio`, `id_tipo_procedimiento`, `observaciones`, `registrado_por`, `created_at`) VALUES
-(1, '2026-09-08', '08:00:00', 1, 'Cirugía programada sin complicaciones.', 4, '2026-09-09 21:21:39'),
+(1, '2026-09-08', '08:00:00', 1, 'Cirugia programada sin complicaciones.', 4, '2026-09-09 21:21:39'),
 (2, '2026-09-08', '10:30:00', 2, 'Paciente ingresado para procedimiento traumatológico.', 4, '2026-09-09 21:21:39'),
 (3, '2026-09-09', '09:00:00', 4, 'Procedimiento ambulatorio.', 4, '2026-09-09 21:21:39');
 
@@ -347,14 +363,14 @@ CREATE TABLE `cirugia_personal` (
 --
 
 INSERT INTO `cirugia_personal` (`id`, `id_cirugia`, `id_usuario`, `rol_en_cirugia`) VALUES
-(1, 1, 1, 'Cirujano principal'),
-(2, 1, 2, 'Anestesista'),
-(3, 1, 3, 'Enfermero'),
 (4, 2, 1, 'Cirujano'),
 (5, 2, 2, 'Anestesista'),
 (6, 2, 3, 'Enfermero'),
-(7, 3, 1, 'Cirujano'),
-(8, 3, 3, 'Enfermero');
+(21, 1, 1, 'Cirujano/a'),
+(22, 1, 3, 'Instrumentador/a'),
+(23, 1, 2, 'Técnico/a en anestesia'),
+(26, 3, 1, 'Cirujano/a'),
+(27, 3, 3, 'Instrumentador/a');
 
 -- --------------------------------------------------------
 
@@ -444,11 +460,8 @@ CREATE TABLE `novedades` (
 --
 
 INSERT INTO `novedades` (`id_novedad`, `id_usuario`, `tipo`, `fecha_desde`, `fecha_hasta`, `observaciones`, `registrado_por`) VALUES
-(1, 3, 'Licencia', '2026-09-15', '2026-09-17', 'Licencia programada.', 4),
-(2, 2, 'Capacitación', '2026-09-12', '2026-09-12', 'Capacitación interna de anestesiología.', 4),
-(3, 1, 'Reunión', '2026-09-10', '2026-09-10', 'Reunión del equipo quirúrgico.', 4),
 (4, 2, 'Vacaciones', '2026-10-01', '2026-10-10', 'Prueba novedad', 1),
-(5, 12, 'Vacaciones', '2026-09-15', '2026-09-30', 'Se va a cataratas.', 1);
+(5, 12, 'Vacaciones', '2026-09-15', '2026-09-30', 'Se va a cataratas', 1);
 
 -- --------------------------------------------------------
 
@@ -546,10 +559,10 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `apellido`, `dni`, `especialidad`, `id_tipo_personal`, `tipo_contrato`, `password_hash`, `es_admin`, `activo`, `sesion_token`, `created_at`) VALUES
-(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, '14b71bfb53d17147b0bce20843eeda80c9b1c5049d457d6824b7dfb83bb6ce2b', '2026-09-09 21:21:39'),
-(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, '5048a88ccfd14d4a4fb0a03e301ad56e567d45ef78944fc893a7abd1b43dcf1d', '2026-09-09 21:21:39'),
+(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, 'c25055fd3a5f44f3b4373f1eaa5d90a135af81ea49d77d7773ff47b11d207c7f', '2026-09-09 21:21:39'),
+(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, '9fe37ba8af25376e4be4946130209bcbafd464a1aed1c7ae874b43c1c32b9a54', '2026-09-09 21:21:39'),
 (3, 'Carlos', 'Rodríguez', '32333444', 'Enfermero', 3, 'Fijo', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, '4af35b3c5db5d9e70aea7ac8d2effc26058f944378ce42ede300748e122a8b73', '2026-09-09 21:21:39'),
-(4, 'Lucía', 'Fernández', '33444555', 'Administrativo', 4, 'Admin', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 1, 1, '62944384ce656497da0f794b607b1891a1d45140113845dc071546bb41ce5986', '2026-09-09 21:21:39'),
+(4, 'Lucía', 'Fernández', '33444555', 'Mantenimiento', 5, 'Fijo', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:21:39'),
 (5, 'Pedro', 'Martínez', '34555666', 'Mantenimiento', 5, 'Alquiler', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:21:39'),
 (6, 'Nicolas', 'Fortunato', '48228401', 'Cirujano', 1, 'Por Hora', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:45:10'),
 (8, 'Quique', 'Laloz', '18999000', 'Instrumentador', 6, 'Alquiler', '$2y$10$6plrgFXTOP6BR7yGMs0PQ.JDvD8riAzm3npfirdd4TrVLkWFT5d2K', 0, 1, NULL, '2026-09-09 22:31:13'),
@@ -652,13 +665,13 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `alquileres`
 --
 ALTER TABLE `alquileres`
-  MODIFY `id_alquiler` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_alquiler` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `auditoria`
 --
 ALTER TABLE `auditoria`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=292;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=322;
 
 --
 -- AUTO_INCREMENT de la tabla `cirugias`
@@ -670,7 +683,7 @@ ALTER TABLE `cirugias`
 -- AUTO_INCREMENT de la tabla `cirugia_personal`
 --
 ALTER TABLE `cirugia_personal`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `configuracion_sistema`
