@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../../src/security.php';
 require_once __DIR__ . '/../../../src/admin_functions.php';
 $user = require_admin();
 $current = basename($_SERVER['PHP_SELF']);
+$brand_home = (int)$user['es_admin'] === 1 ? 'panel.php' : '../dashboard.php';
+$brand_home_title = (int)$user['es_admin'] === 1 ? 'Ir al panel de administración' : 'Ir al fichaje';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -18,7 +20,7 @@ $current = basename($_SERVER['PHP_SELF']);
 <body>
 <div class="app admin-app">
 <aside class="sidebar">
-    <div class="side-brand"><img class="mini-logo" src="../assets/img/amemt_logo.jpg" alt="AMEMT"><strong>Fichero Digital</strong></div>
+    <div class="side-brand"><a class="brand-home" href="<?= e($brand_home) ?>" title="<?= e($brand_home_title) ?>"><img class="mini-logo" src="../assets/img/amemt_logo.jpg" alt="AMEMT"><strong>Fichero Digital</strong></a></div>
     <h2>MENÚ</h2>
     <nav>
         <a class="<?= $current === 'panel.php' ? 'active' : '' ?>" href="panel.php">Panel</a>

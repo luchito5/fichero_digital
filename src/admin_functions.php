@@ -547,6 +547,66 @@ function create_cirugia(array $data, array $personal): array
     }
 }
 
+function get_cirugia(int $id): ?array
+{
+    $stmt = db()->prepare(
+        "SELECT id_cirugia, fecha, TIME_FORMAT(hora_inicio, '%H:%i') AS hora_inicio,
+                id_tipo_procedimiento, observaciones
+         FROM cirugias WHERE id_cirugia = :id LIMIT 1"
+    );
+    $stmt->execute(['id' => $id]);
+    $cirugia = $stmt->fetch();
+    if (!$cirugia) return null;
+    $stmt = db()->prepare("SELECT cp.id_usuario, COALESCE(cp.rol_en_cirugia, '') AS rol, CONCAT(u.nombre, ' ', u.apellido) AS nombre FROM cirugia_personal cp LEFT JOIN usuarios u ON u.id_usuario = cp.id_usuario WHERE cp.id_cirugia = :id ORDER BY cp.id");
+    $stmt->execute(['id' => $id]);
+    $cirugia['personal'] = $stmt->fetchAll();
+    return $cirugia;
+}
+
+function update_cirugia(int $id, array $data, array $personal): array
+{
+    $required = ['fecha', 'hora_inicio', 'tipo_procedimiento'];
+    foreach ($required as $key) if (trim((string)($data[$key] ?? '')) === '') return ['ok' => false, 'message' => 'Completá fecha, hora y tipo de procedimiento.'];
+
+    $personal = array_values(array_filter($personal, fn($row) => !empty($row['id_usuario'])));
+    if (!$personal) return ['ok' => false, 'message' => 'Seleccioná al menos un participante.'];
+
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+        $existe = $pdo->prepare('SELECT COUNT(*) FROM cirugias WHERE id_cirugia = :id');
+        $existe->execute(['id' => $id]);
+        if ((int)$existe->fetchColumn() === 0) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => 'La cirugía ya no existe.'];
+        }
+        $stmt = $pdo->prepare('UPDATE cirugias SET fecha = :fecha, hora_inicio = :hora, id_tipo_procedimiento = :tipo, observaciones = :obs WHERE id_cirugia = :id');
+        $stmt->execute([
+            'fecha' => trim($data['fecha']),
+            'hora' => trim($data['hora_inicio']),
+            'tipo' => (int)$data['tipo_procedimiento'],
+            'obs' => trim((string)($data['observaciones'] ?? '')),
+            'id' => $id,
+        ]);
+        $pdo->prepare('DELETE FROM cirugia_personal WHERE id_cirugia = :id')->execute(['id' => $id]);
+        $stmt = $pdo->prepare('INSERT INTO cirugia_personal (id_cirugia, id_usuario, rol_en_cirugia) VALUES (:c, :u, :rol)');
+        foreach ($personal as $row) {
+            $stmt->execute([
+                'c' => $id,
+                'u' => (int)$row['id_usuario'],
+                'rol' => trim((string)($row['rol'] ?? 'Participante')),
+            ]);
+        }
+        $pdo->commit();
+        registrar_auditoria((int)($_SESSION['user']['id'] ?? 0), 'cirugia_actualizada', 'ID ' . $id);
+        return ['ok' => true];
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log($e->getMessage());
+        return ['ok' => false, 'message' => 'No se pudo actualizar la cirugía.'];
+    }
+}
+
 function delete_cirugia(int $id): array
 {
     try {
@@ -566,7 +626,7 @@ function list_novedades(): array
                 u.nombre, u.apellido
          FROM novedades n
          INNER JOIN usuarios u ON u.id_usuario = n.id_usuario
-         ORDER BY n.fecha_desde DESC, n.id_novedad DESC"
+         ORDER BY n.fecha_desde ASC, n.fecha_hasta ASC, n.id_novedad ASC"
     )->fetchAll();
 }
 
@@ -574,13 +634,16 @@ function create_novedad(array $data): array
 {
     $required = ['id_usuario', 'tipo', 'fecha_desde'];
     foreach ($required as $key) if (trim((string)($data[$key] ?? '')) === '') return ['ok' => false, 'message' => 'Completá empleado, tipo y fecha desde.'];
+    $desde = trim((string)$data['fecha_desde']);
+    $hasta = trim((string)($data['fecha_hasta'] ?? ''));
+    if ($hasta !== '' && $hasta <= $desde) return ['ok' => false, 'message' => 'La fecha hasta debe ser posterior a la fecha desde.'];
     try {
         $stmt = db()->prepare('INSERT INTO novedades (id_usuario, tipo, fecha_desde, fecha_hasta, observaciones, registrado_por) VALUES (:u, :tipo, :desde, :hasta, :obs, :admin)');
         $stmt->execute([
             'u' => (int)$data['id_usuario'],
             'tipo' => trim((string)$data['tipo']),
-            'desde' => trim((string)$data['fecha_desde']),
-            'hasta' => trim((string)($data['fecha_hasta'] ?? '')) !== '' ? trim((string)$data['fecha_hasta']) : null,
+            'desde' => $desde,
+            'hasta' => $hasta !== '' ? $hasta : null,
             'obs' => trim((string)($data['observaciones'] ?? '')),
             'admin' => (int)($_SESSION['user']['id'] ?? 0),
         ]);
@@ -589,6 +652,42 @@ function create_novedad(array $data): array
     } catch (PDOException $e) {
         error_log($e->getMessage());
         return ['ok' => false, 'message' => 'No se pudo registrar la novedad.'];
+    }
+}
+
+function get_novedad(int $id): ?array
+{
+    $stmt = db()->prepare(
+        'SELECT id_novedad, id_usuario, tipo, fecha_desde, fecha_hasta, observaciones
+         FROM novedades WHERE id_novedad = :id LIMIT 1'
+    );
+    $stmt->execute(['id' => $id]);
+    return $stmt->fetch() ?: null;
+}
+
+function update_novedad(int $id, array $data): array
+{
+    $required = ['id_usuario', 'tipo', 'fecha_desde'];
+    foreach ($required as $key) if (trim((string)($data[$key] ?? '')) === '') return ['ok' => false, 'message' => 'Completá empleado, tipo y fecha desde.'];
+    $desde = trim((string)$data['fecha_desde']);
+    $hasta = trim((string)($data['fecha_hasta'] ?? ''));
+    if ($hasta !== '' && $hasta <= $desde) return ['ok' => false, 'message' => 'La fecha hasta debe ser posterior a la fecha desde.'];
+    try {
+        $stmt = db()->prepare('UPDATE novedades SET id_usuario = :u, tipo = :tipo, fecha_desde = :desde, fecha_hasta = :hasta, observaciones = :obs WHERE id_novedad = :id');
+        $stmt->execute([
+            'u' => (int)$data['id_usuario'],
+            'tipo' => trim((string)$data['tipo']),
+            'desde' => $desde,
+            'hasta' => $hasta !== '' ? $hasta : null,
+            'obs' => trim((string)($data['observaciones'] ?? '')),
+            'id' => $id,
+        ]);
+        if ($stmt->rowCount() === 0 && get_novedad($id) === null) return ['ok' => false, 'message' => 'La novedad ya no existe.'];
+        registrar_auditoria((int)($_SESSION['user']['id'] ?? 0), 'novedad_actualizada', 'ID ' . $id);
+        return ['ok' => true];
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        return ['ok' => false, 'message' => 'No se pudo actualizar la novedad.'];
     }
 }
 
@@ -608,7 +707,8 @@ function list_alquileres(): array
 {
     return db()->query(
         "SELECT a.id_alquiler, a.fecha, TIME_FORMAT(a.hora_entrada, '%H:%i') AS hora_entrada,
-                TIME_FORMAT(a.hora_salida, '%H:%i') AS hora_salida, a.horas_uso, a.dato_facturacion,
+                TIME_FORMAT(a.hora_salida, '%H:%i') AS hora_salida, a.hora_salida_confirmada,
+                a.horas_uso, a.dato_facturacion,
                 COALESCE(CONCAT(u.nombre, ' ', u.apellido), a.nombre_responsable) AS responsable,
                 a.institucion
          FROM alquileres a
@@ -623,7 +723,34 @@ function alquileres_stats(): array
         'hoy' => (int)db()->query("SELECT COUNT(*) FROM alquileres WHERE fecha = CURDATE()")->fetchColumn(),
         'mes' => (int)db()->query("SELECT COUNT(*) FROM alquileres WHERE DATE_FORMAT(fecha, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')")->fetchColumn(),
         'hs_mes' => (float)db()->query("SELECT COALESCE(SUM(horas_uso), 0) FROM alquileres WHERE DATE_FORMAT(fecha, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')")->fetchColumn(),
+        'pendientes' => (int)db()->query("SELECT COUNT(*) FROM alquileres WHERE hora_salida_confirmada = 0")->fetchColumn(),
     ];
+}
+
+function confirmar_salida_alquiler(int $id, string $hora): array
+{
+    $hora = trim($hora);
+    if ($hora === '') return ['ok' => false, 'message' => 'Ingresá la hora exacta de salida.'];
+
+    $stmt = db()->prepare('SELECT TIME_FORMAT(hora_entrada, \'%H:%i\') AS hora_entrada FROM alquileres WHERE id_alquiler = :id');
+    $stmt->execute(['id' => $id]);
+    $alquiler = $stmt->fetch();
+    if (!$alquiler) return ['ok' => false, 'message' => 'El alquiler indicado no existe.'];
+    if ($alquiler['hora_entrada'] === null) return ['ok' => false, 'message' => 'Este alquiler no tiene hora de entrada cargada.'];
+    if (strtotime($hora) <= strtotime((string)$alquiler['hora_entrada'])) {
+        return ['ok' => false, 'message' => 'La hora de salida debe ser posterior a la hora de entrada.'];
+    }
+
+    $horas = round((strtotime($hora) - strtotime((string)$alquiler['hora_entrada'])) / 3600, 2);
+    try {
+        $stmt = db()->prepare('UPDATE alquileres SET hora_salida = :salida, horas_uso = :hs, hora_salida_confirmada = 1 WHERE id_alquiler = :id');
+        $stmt->execute(['salida' => $hora, 'hs' => $horas, 'id' => $id]);
+        registrar_auditoria((int)($_SESSION['user']['id'] ?? 0), 'alquiler_salida_confirmada', 'ID ' . $id . ' - ' . $hora);
+        return ['ok' => true, 'horas' => $horas];
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        return ['ok' => false, 'message' => 'No se pudo confirmar la hora de salida.'];
+    }
 }
 
 function create_alquiler(array $data): array
@@ -658,6 +785,65 @@ function create_alquiler(array $data): array
     } catch (PDOException $e) {
         error_log($e->getMessage());
         return ['ok' => false, 'message' => 'No se pudo registrar el alquiler.'];
+    }
+}
+
+function get_alquiler(int $id): ?array
+{
+    $stmt = db()->prepare(
+        "SELECT a.id_alquiler, COALESCE(a.id_usuario, 0) AS id_usuario,
+                COALESCE(a.nombre_responsable, CONCAT(u.nombre, ' ', u.apellido)) AS nombre_responsable,
+                COALESCE(a.institucion, '') AS institucion, a.fecha,
+                TIME_FORMAT(a.hora_entrada, '%H:%i') AS hora_entrada,
+                TIME_FORMAT(a.hora_salida, '%H:%i') AS hora_salida,
+                COALESCE(a.dato_facturacion, '') AS dato_facturacion
+         FROM alquileres a
+         LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
+         WHERE a.id_alquiler = :id LIMIT 1"
+    );
+    $stmt->execute(['id' => $id]);
+    return $stmt->fetch() ?: null;
+}
+
+function update_alquiler(int $id, array $data): array
+{
+    if (trim((string)($data['nombre_responsable'] ?? '')) === '') return ['ok' => false, 'message' => 'Completá el nombre del responsable.'];
+    if (trim((string)($data['fecha'] ?? '')) === '') return ['ok' => false, 'message' => 'Completá la fecha.'];
+
+    $entrada = trim((string)($data['hora_entrada'] ?? ''));
+    $salida = trim((string)($data['hora_salida'] ?? ''));
+    $horas = null;
+    if ($entrada !== '' && $salida !== '') {
+        if (strtotime($salida) <= strtotime($entrada)) {
+            return ['ok' => false, 'message' => 'La hora de salida debe ser posterior a la hora de entrada.'];
+        }
+        $horas = round((strtotime($salida) - strtotime($entrada)) / 3600, 2);
+    }
+
+    try {
+        $stmt = db()->prepare('SELECT TIME_FORMAT(hora_salida, \'%H:%i\') AS hora_salida, hora_salida_confirmada FROM alquileres WHERE id_alquiler = :id');
+        $stmt->execute(['id' => $id]);
+        $actual = $stmt->fetch();
+        $confirmada = ($salida !== '' && (string)$actual['hora_salida'] === $salida) ? (int)$actual['hora_salida_confirmada'] : 0;
+
+        $stmt = db()->prepare('UPDATE alquileres SET nombre_responsable = :nombre, institucion = :inst, fecha = :fecha, hora_entrada = :entrada, hora_salida = :salida, horas_uso = :hs, dato_facturacion = :fact, hora_salida_confirmada = :confirmada WHERE id_alquiler = :id');
+        $stmt->execute([
+            'nombre' => trim((string)$data['nombre_responsable']),
+            'inst' => trim((string)($data['institucion'] ?? '')),
+            'fecha' => trim((string)$data['fecha']),
+            'entrada' => $entrada !== '' ? $entrada : null,
+            'salida' => $salida !== '' ? $salida : null,
+            'hs' => $horas,
+            'fact' => trim((string)($data['dato_facturacion'] ?? '')),
+            'confirmada' => $confirmada,
+            'id' => $id,
+        ]);
+        if ($stmt->rowCount() === 0 && get_alquiler($id) === null) return ['ok' => false, 'message' => 'El alquiler ya no existe.'];
+        registrar_auditoria((int)($_SESSION['user']['id'] ?? 0), 'alquiler_actualizado', 'ID ' . $id);
+        return ['ok' => true];
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        return ['ok' => false, 'message' => 'No se pudo actualizar el alquiler.'];
     }
 }
 

@@ -34,7 +34,7 @@ VALUES
 ('Juan', 'Pérez', '30111222', 'Cirugía general', 'Por Cirugía', 1, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 1, 1),
 ('María', 'Gómez', '31222333', 'Anestesiología', 'Por Cirugía', 2, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 0, 1),
 ('Carlos', 'Rodríguez', '32333444', 'Enfermería', 'Fijo', 3, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 0, 1),
-('Lucía', 'Fernández', '33444555', NULL, 'Fijo', 4, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 1, 1),
+('Lucía', 'Fernández', '33444555', NULL, 'Fijo', 4, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 0, 1),
 ('Pedro', 'Martínez', '34555666', NULL, 'Alquiler', 5, '$2y$10$xSwr/mKdB6G8vFdZ3N1fJOU2vNYsUusqo9o3.CukG9CFm5RCtM1Em', 0, 1);
 
 INSERT INTO configuracion_sistema

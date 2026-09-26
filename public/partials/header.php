@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../src/functions.php';
 $user = require_login();
 $current = basename($_SERVER['PHP_SELF']);
 $page_title = $page_title ?? 'Fichaje';
+$brand_home = (int)$user['es_admin'] === 1 ? 'admin/panel.php' : 'dashboard.php';
+$brand_home_title = (int)$user['es_admin'] === 1 ? 'Ir al panel de administración' : 'Ir al fichaje';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,7 +21,7 @@ $page_title = $page_title ?? 'Fichaje';
 <body>
 <div class="app">
 <aside class="sidebar">
-    <div class="side-brand"><img class="mini-logo" src="assets/img/amemt_logo.jpg" alt="AMEMT"><strong>Fichero Digital</strong></div>
+    <div class="side-brand"><a class="brand-home" href="<?= e($brand_home) ?>" title="<?= e($brand_home_title) ?>"><img class="mini-logo" src="assets/img/amemt_logo.jpg" alt="AMEMT"><strong>Fichero Digital</strong></a></div>
     <h2>MENÚ</h2>
     <a class="<?= $current === 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">Fichaje</a>
     <a class="<?= $current === 'resumen.php' ? 'active' : '' ?>" href="resumen.php">Mi resumen</a>

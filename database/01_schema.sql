@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS alquileres (
     fecha DATE NOT NULL,
     hora_entrada TIME,
     hora_salida TIME,
+    hora_salida_confirmada TINYINT(1) NOT NULL DEFAULT 0,
     horas_uso DECIMAL(10,2),
     dato_facturacion TEXT,
     registrado_por INT NOT NULL,

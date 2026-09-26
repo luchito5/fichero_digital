@@ -9,15 +9,15 @@ Proyecto PHP + MySQL/MariaDB para AMEMT, con flujo Empleado y flujo Administrado
 - `public/dashboard.php` - Panel de empleado (autenticado, no admin)
 - `public/resumen.php` - Resumen mensual para empleados
 - `public/admin/panel.php` - Panel de administrador
-- `public/admin/` - 14 módulos administrativos (empleados, validación, config, etc.)
+- `public/admin/` - 13 módulos administrativos (empleados, validación, config, etc.)
 - `public/partials/` - Plantillas header/footer
 - `public/assets/` - CSS, JS, imágenes (Bootstrap-based)
 
 ### Backend (PHP)
-- `src/auth.php` - Autenticación, sesiones, CSRF, rate limiting, auditoría
+- `src/auth.php` - Login/logout, sesión y refresco del rol desde la base
 - `src/functions.php` - Lógica core: fichajes, estadísticas, cirugías, novedades
-- `src/admin_functions.php` - Módulo admin: empleados, validación, procedimientos
-- `src/security.php` - Utilidades de seguridad
+- `src/admin_functions.php` - Módulo admin: empleados, validación, procedimientos, edición de registros
+- `src/security.php` - CSRF, sesión segura, rate limiting, iconos, helpers
 
 ### API
 - `public/api/fichaje.php` - Endpoint REST de clock in/out
@@ -59,14 +59,16 @@ fichero_digital/
 3. Resumen mensual (`resumen.php?mes=YYYY-MM`)
 4. Actividades y cirugías del día
 
+El bloque "Fichero Digital" del menú es un enlace: lleva al panel de administración si el usuario es admin y al fichaje del día si es empleado.
+
 ### Administrador
 1. Panel de administración con indicadores
 2. Alerta de salidas pendientes y personal presente
 3. Listado de empleados (búsqueda y filtro por contrato)
 4. Alta, edición y baja lógica de empleados
-5. Cirugías: registro con fecha, hora, procedimiento y personal participante
-6. Vacaciones/ART: registro de novedades con historial
-7. Alquileres: estadísticas y registro de quirófano
+5. Cirugías: registro con fecha, hora, procedimiento y personal participante (alta y edición)
+6. Vacaciones/ART: registro de novedades con historial (alta y edición)
+7. Alquileres: estadísticas, registro de quirófano y confirmación de la hora exacta de salida
 8. Resumen mensual: horas, días, empleados activos, cirugías por empleado
 9. Configuración: datos del sistema, tipos de procedimientos, mi cuenta, cierre de sesión masivo
 
@@ -81,7 +83,7 @@ fichero_digital/
 - `cirugia_personal` - Surgery-personnel mapping
 - `tipos_procedimiento` - Procedure type catalog
 - `novedades` - Holidays/absences (vacaciones, ART, capacitaciones)
-- `alquileres` - Equipment rentals
+- `alquileres` - Equipment rentals (con responsable interno o externo)
 - `rate_limits` - Rate limiting tracking
 - `auditoria` - Audit trail of all sensitive actions
 
@@ -89,6 +91,8 @@ fichero_digital/
 - `usuarios`: id_usuario, nombre, apellido, dni (UNIQUE), password_hash, es_admin, activo, tipo_contrato, id_tipo_personal, sesion_token
 - `fichajes`: id_fichaje, id_usuario, fecha, hora_entrada, hora_salida, horas_trabajadas, validado_admin, validado_por, obs_validacion
 - `cirugias`: id_cirugia, fecha, hora_inicio, id_tipo_procedimiento, observaciones, registrado_por
+- `novedades`: id_novedad, id_usuario, tipo, fecha_desde, fecha_hasta, observaciones, registrado_por
+- `alquileres`: id_alquiler, id_usuario (NULL si es responsable externo), nombre_responsable, institucion, fecha, hora_entrada, hora_salida, hora_salida_confirmada, horas_uso, dato_facturacion
 
 ---
 
@@ -113,20 +117,43 @@ fichero_digital/
 5. **Gestión de Empleados (admin)**:
    - Listar, buscar, crear, editar, toggle estado, eliminar
    - Cada empleado tiene tipo de contrato (Fijo/Por Hora/Por Cirugía/Alquiler/Admin)
+   - El módulo de empleados no toca `es_admin`: un administrador no se puede crear ni degradar desde la interfaz
 
 6. **Configuración (admin)**:
    - Gestionar tipos de procedimientos
    - Actualizar cuenta de usuario (contraseña)
    - Cerrar sesión de todos los usuarios (auto-cierra fichajes abiertos)
 
+7. **Edición de registros (admin)**:
+   - Cirugías, novedades y alquileres tienen botón "Editar" en cada fila
+   - `?editar=<id>` recarga el mismo formulario de alta con los datos cargados (mismos campos y validaciones) y botón "Cancelar"
+   - El POST manda `action=editar` + `id`; si la validación falla, el formulario sigue abierto con lo que se cargó
+   - Cada actualización queda en `auditoria` (`cirugia_actualizada`, `novedad_actualizada`, `alquiler_actualizada`)
+
+8. **Novedades / Vacaciones / ART (admin)**:
+   - "Fecha hasta" solo ofrece días posteriores a "Fecha desde", y el servidor rechaza `fecha_hasta <= fecha_desde`
+   - El historial se muestra en orden ascendente (más antigua primero)
+   - No hay borrado automático de novedades vencidas: la baja es manual
+
+9. **Alquileres: hora exacta de salida (admin)**:
+   - Al dar de alta el alquiler la hora de salida es aproximada
+   - Cada fila pendiente tiene un campo de hora + botón "Confirmar" (etiqueta gris `aprox.`); al confirmar se recalculan las `horas_uso`, se marca `hora_salida_confirmada = 1`, el botón desaparece y quedan solo "Editar" y "Eliminar"
+   - El indicador "Salidas sin confirmar" muestra cuántas faltan
+   - Si se edita la hora de salida desde "Editar", el alquiler vuelve a quedar como aproximado hasta que se confirme
+   - Rechaza una hora de salida anterior o igual a la de entrada
+
 ---
 
 ## Seguridad Aplicada
 
+- PDO con consultas preparadas en todas las consultas
 - CSRF tokens en todos los formularios
 - Rate limiting por IP y DNI (5 intentos/15min login, 10/hour fichajes)
 - Sesiones con regeneración de ID, cookies seguras (HTTPS-only, Lax SameSite)
+- El rol se relee de la base en cada request: un cambio de `es_admin` se aplica sin esperar un nuevo login
+- Autorización de administrador en servidor (`require_admin()`), no solo ocultando links de la interfaz
 - Contraseñas hasheadas via `password_verify`/`password_hash` (bcrypt)
+- Escape de salida con `htmlspecialchars()`
 - Auditoría de todas las acciones sensibles (login, fichaje, empleado, cirugías, novedades, alquileres, configuración)
 - Invalidación global de sesiones: cada login genera token en `usuarios.sesion_token`; botón "Cerrar sesión de todos" invalida todas simultáneamente
 - Validación en servidor con transacciones + `SELECT ... FOR UPDATE` para evitar condiciones de carrera
@@ -157,13 +184,22 @@ El flujo administrador muestra `Fijo`, `Por Hora`, `Por Cirugía` y `Alquiler`. 
 
 ---
 
+## Acceso Administrador
+
+- El acceso al panel depende únicamente de `usuarios.es_admin`.
+- Hay un solo administrador (DNI `30111222`); el resto de los usuarios son empleados.
+- Si se necesita un administrador adicional (por ejemplo Contabilidad de AMEMT), se crea el usuario con `es_admin = 1` directamente en la base: no hay pantalla para dar de alta admins.
+- Al degradar o desactivar un admin conviene limpiar su `sesion_token` para que pierda el acceso en el momento.
+
+---
+
 ## Instalación con XAMPP
 
 1. Copiar la carpeta a `C:\xampp\htdocs\fichero_digital` (si se cambia de carpeta, ajustar `BASE_URL` en `config/config.php`)
 2. Iniciar Apache y MySQL
 3. En phpMyAdmin ejecutar `database/01_schema.sql`
 4. Ejecutar `database/02_seed.sql` para cargar datos de prueba
-5. Si ya tenías la BDD anterior, ejecutar `database/03_migration_admin.sql`, `database/04_migration_seguridad.sql` y `database/05_migration_admin.sql`
+5. Si ya tenías la BDD anterior, ejecutar `database/03_migration_admin.sql`, `database/04_migration_seguridad.sql`, `database/05_migration_admin.sql`, `database/06_migration_username_dni.sql` y `database/07_migration_hora_salida_confirmada.sql`
 6. Abrir `http://localhost/fichero_digital/public/`
 
 ---
@@ -172,29 +208,11 @@ El flujo administrador muestra `Fijo`, `Por Hora`, `Por Cirugía` y `Alquiler`. 
 
 Contraseña de prueba (guardada como **hash bcrypt**): `12345678`
 
-- Administrador: DNI `30111222`
+- Administrador: DNI `30111222` (en la base activa: Natalia Díaz; el seed lo crea como "Juan Pérez")
 - Empleado: DNI `31222333`
-- Administrador: DNI `33444555`
+- Empleado: DNI `33444555`
 - Empleado: DNI `32333444`
 
+> Solo el DNI `30111222` tiene `es_admin = 1`; el resto son empleados (ver "Acceso Administrador").
+
 > Las contraseñas del seed son hashes bcrypt. En producción no deben usarse estas credenciales.
-
----
-
-## Seguridad Aplicada (resumen)
-
-- PDO y consultas preparadas
-- Claves con `password_hash()` / `password_verify()` (bcrypt)
-- Sesiones con regeneración del ID
-- Cookies HttpOnly/SameSite
-- CSRF en operaciones POST
-- Autorización de Administrador en servidor, no solo en la interfaz
-- Validación de datos recibidos
-- Escape HTML con `htmlspecialchars()`
-- **Rate limiting** contra fuerza bruta y spam
-- **Auditoría**: toda acción sensible queda registrada en la tabla `auditoria`
-- **Invalidación global de sesiones**: cierra todas las sesiones activas al instante
-- Validación de estado en servidor con transacciones + `SELECT ... FOR UPDATE`
-- Baja lógica para conservar información histórica
-- Directorios internos separados del directorio público
-- Headers de seguridad básicos y listado de directorios deshabilitado

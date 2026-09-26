@@ -314,6 +314,8 @@ td {
 
 /* ===== ADMINISTRADOR ===== */
 .side-brand { margin-bottom: 34px; display:flex; align-items:center; gap:10px; color:#e8f0f3; }
+.sidebar a.brand-home { display:flex; align-items:center; gap:10px; margin:0; padding:0; border-radius:0; color:#e8f0f3; text-decoration:none; }
+.sidebar a.brand-home:hover { background:transparent; color:#fff; }
 .mini-logo { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #159bb3; background:#0e5a6e; }
 .admin-app .sidebar { padding:30px 18px 20px; display:flex; flex-direction:column; min-height:100vh; }
 .admin-app .sidebar h2 { margin-bottom:10px; }
@@ -406,7 +408,7 @@ td { padding:9px; border-top:1px solid rgba(255,255,255,.12); font-size:13px; }
 .status-switch.on .track::after { left:14px; }
 .inline-form { display:inline; }
 .tag,.status { display:inline-block; padding:7px 10px; border-radius:7px; font-size:11px; font-weight:700; white-space:nowrap; }
-.tag.fixed { background:#8a949d; color:#fff; }
+.tag.fixed, .tag.pendiente { background:#8a949d; color:#fff; }
 .tag.hour { background:#f07a19; color:#fff; }
 .tag.surgery { background:#3f36b9; color:#fff; }
 .tag.rental { background:#16e0ca; color:#073d3c; }
@@ -418,6 +420,17 @@ td { padding:9px; border-top:1px solid rgba(255,255,255,.12); font-size:13px; }
 .form-grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:15px 28px; }
 .form-panel label { color:#dce9eb; margin:0 0 6px; }
 .form-panel .btn { margin-top:22px; }
+.form-actions { display:flex; align-items:center; gap:12px; }
+.form-actions .btn { width:auto; }
+.form-actions .small-btn { margin-top:22px; text-decoration:none; }
+.hint-inline { color:var(--muted); font-weight:400; font-size:11px; }
+.salida-form { display:inline-flex; align-items:center; gap:6px; }
+.salida-form input[type="time"] { width:108px; padding:6px 8px; font-family:inherit; font-size:12px;
+    background:#153e45; color:#f4f6f8; border:1px solid #27636b; border-radius:4px; }
+.salida-form .small-btn { padding:6px 10px; font-size:12px; }
+.salida-form + .tag { margin-left:4px; }
+.salida-ok { display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#5fd66b; }
+.salida-ok .ic { margin:0; }
 .divider { border-top:1px solid rgba(255,255,255,.25); margin:18px -20px; }
 .contract-preview { display:flex; gap:9px; margin-top:10px; flex-wrap:wrap; }
 .contract-options { display:flex; gap:9px; margin-top:10px; flex-wrap:wrap; }

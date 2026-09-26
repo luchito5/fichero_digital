@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-09-2026 a las 22:32:39
+-- Tiempo de generación: 21-09-2026 a las 18:17:39
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -281,7 +281,28 @@ INSERT INTO `auditoria` (`id`, `fecha`, `id_usuario`, `accion`, `detalle`, `ip`)
 (267, '2026-09-17 17:30:57', 4, 'fichaje_a_pendiente', 'ID 29', '::1'),
 (268, '2026-09-17 17:31:17', 4, 'fichaje_aprobado', 'ID 29 - Validado por administración', '::1'),
 (269, '2026-09-17 17:31:48', 3, 'login', 'Ingreso correcto', '::1'),
-(270, '2026-09-17 17:31:50', 3, 'fichaje_entrada', 'Hora: 17:31', '::1');
+(270, '2026-09-17 17:31:50', 3, 'fichaje_entrada', 'Hora: 17:31', '::1'),
+(271, '2026-09-18 08:19:10', 1, 'login', 'Ingreso correcto', '::1'),
+(272, '2026-09-18 08:19:51', 1, 'fichaje_validado', 'ID 30', '::1'),
+(273, '2026-09-18 08:20:09', 1, 'fichaje_a_pendiente', 'ID 30', '::1'),
+(274, '2026-09-18 08:47:14', 1, 'fichaje_corregido', 'ID 30', '::1'),
+(275, '2026-09-18 08:48:05', 2, 'login', 'Ingreso correcto', '::1'),
+(276, '2026-09-18 08:48:10', 2, 'fichaje_entrada', 'Hora: 08:48', '::1'),
+(277, '2026-09-18 08:48:52', 2, 'fichaje_salida', 'Hora: 08:48', '::1'),
+(278, '2026-09-18 08:49:00', 2, 'fichaje_entrada', 'Hora: 08:49', '::1'),
+(279, '2026-09-18 08:49:15', 1, 'login', 'Ingreso correcto', '::1'),
+(280, '2026-09-18 08:49:48', 1, 'fichaje_aprobado', 'ID 31 - Validado por administración', '::1'),
+(281, '2026-09-18 08:52:58', 2, 'login', 'Ingreso correcto', '::1'),
+(282, '2026-09-18 08:53:00', 2, 'fichaje_salida', 'Hora: 08:53', '::1'),
+(283, '2026-09-18 08:53:54', 1, 'login', 'Ingreso correcto', '::1'),
+(284, '2026-09-18 08:54:04', 1, 'fichaje_aprobado', 'ID 32 - Validado por administración', '::1'),
+(285, '2026-09-18 09:33:04', 2, 'login', 'Ingreso correcto', '::1'),
+(286, '2026-09-18 19:37:16', NULL, 'login_fallido', 'DNI: 31222333', '::1'),
+(287, '2026-09-18 19:37:26', 1, 'login', 'Ingreso correcto', '::1'),
+(288, '2026-09-18 19:40:17', 2, 'login', 'Ingreso correcto', '::1'),
+(289, '2026-09-21 12:49:53', 1, 'login', 'Ingreso correcto', '::1'),
+(290, '2026-09-21 13:03:32', 1, 'fichaje_a_pendiente', 'ID 30', '::1'),
+(291, '2026-09-21 13:03:38', 1, 'fichaje_aprobado', 'ID 30 - Validado por administración', '::1');
 
 -- --------------------------------------------------------
 
@@ -398,7 +419,9 @@ INSERT INTO `fichajes` (`id_fichaje`, `id_usuario`, `fecha`, `hora_entrada`, `ho
 (26, 2, '2026-09-17', '17:06:57', '17:07:40', 0.01, 1, 1, 'No lo vi salir.'),
 (28, 2, '2026-09-17', '17:09:10', '17:09:11', 0.00, 1, 1, 'Validado por administración'),
 (29, 3, '2026-09-17', '17:18:12', '17:29:37', 0.19, 1, 4, 'Validado por administración'),
-(30, 3, '2026-09-17', '17:31:50', NULL, NULL, 0, NULL, NULL);
+(30, 3, '2026-09-17', '17:31:00', '18:00:00', 0.48, 1, 1, 'Validado por administración'),
+(31, 2, '2026-09-18', '08:48:10', '08:48:52', 0.01, 1, 1, 'Validado por administración'),
+(32, 2, '2026-09-18', '08:49:00', '08:53:00', 0.07, 1, 1, 'Validado por administración');
 
 -- --------------------------------------------------------
 
@@ -446,10 +469,9 @@ CREATE TABLE `rate_limits` (
 
 INSERT INTO `rate_limits` (`clave`, `intentos`, `ventana_inicio`, `bloqueado_hasta`) VALUES
 ('fichaje:usuario:10', 1, '2026-09-15 14:09:10', NULL),
-('fichaje:usuario:2', 4, '2026-09-17 17:06:57', NULL),
+('fichaje:usuario:2', 4, '2026-09-18 08:48:10', NULL),
 ('fichaje:usuario:3', 3, '2026-09-17 17:18:12', NULL),
 ('login:dni:30111221', 3, '2026-09-17 17:22:41', NULL),
-('login:dni:31222333', 1, '2026-09-17 17:29:55', NULL),
 ('login:dni:ariel@gmail.com', 1, '2026-09-16 09:25:56', NULL);
 
 -- --------------------------------------------------------
@@ -524,8 +546,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `apellido`, `dni`, `especialidad`, `id_tipo_personal`, `tipo_contrato`, `password_hash`, `es_admin`, `activo`, `sesion_token`, `created_at`) VALUES
-(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, '5183350b7a50f9c90f3a3b9945f5ac18e3bd02f0ba014643993623c3bb9d6171', '2026-09-09 21:21:39'),
-(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, 'c17ab904b89e77ff6c082a723cf025d94ef1f37320eea97b3e317f89a99c5816', '2026-09-09 21:21:39'),
+(1, 'Natalia', 'Diaz', '30111222', 'Administrativo', 4, 'Admin', '$2y$10$/vaYdyxeQuk4yYOC0wp0beB0zbaa3H3S.HF3qq2MGK3yts/M6zZ.6', 1, 1, '14b71bfb53d17147b0bce20843eeda80c9b1c5049d457d6824b7dfb83bb6ce2b', '2026-09-09 21:21:39'),
+(2, 'María', 'Gómez', '31222333', 'Anestesista', 2, 'Por Hora', '$2y$10$KJIhpy5iTkQ.L/Ox31.p.eV1yDneQXOG/v.bgZkeI9TOgRjCh6WV.', 0, 1, '5048a88ccfd14d4a4fb0a03e301ad56e567d45ef78944fc893a7abd1b43dcf1d', '2026-09-09 21:21:39'),
 (3, 'Carlos', 'Rodríguez', '32333444', 'Enfermero', 3, 'Fijo', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, '4af35b3c5db5d9e70aea7ac8d2effc26058f944378ce42ede300748e122a8b73', '2026-09-09 21:21:39'),
 (4, 'Lucía', 'Fernández', '33444555', 'Administrativo', 4, 'Admin', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 1, 1, '62944384ce656497da0f794b607b1891a1d45140113845dc071546bb41ce5986', '2026-09-09 21:21:39'),
 (5, 'Pedro', 'Martínez', '34555666', 'Mantenimiento', 5, 'Alquiler', '$2y$10$oLykXIDMqYjKIURNEcO3SOpa9MdVmD013BFzQL4RKVSzGWM6Cy8Oq', 0, 1, NULL, '2026-09-09 21:21:39'),
@@ -636,7 +658,7 @@ ALTER TABLE `alquileres`
 -- AUTO_INCREMENT de la tabla `auditoria`
 --
 ALTER TABLE `auditoria`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=271;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=292;
 
 --
 -- AUTO_INCREMENT de la tabla `cirugias`
@@ -660,7 +682,7 @@ ALTER TABLE `configuracion_sistema`
 -- AUTO_INCREMENT de la tabla `fichajes`
 --
 ALTER TABLE `fichajes`
-  MODIFY `id_fichaje` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id_fichaje` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT de la tabla `novedades`

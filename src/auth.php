@@ -52,12 +52,17 @@ function current_user(): ?array
     }
 
     try {
-        $stmt = db()->prepare('SELECT sesion_token FROM usuarios WHERE id_usuario = :id AND activo = 1 LIMIT 1');
+        $stmt = db()->prepare('SELECT sesion_token, es_admin FROM usuarios WHERE id_usuario = :id AND activo = 1 LIMIT 1');
         $stmt->execute(['id' => $user['id']]);
-        $dbToken = $stmt->fetchColumn();
+        $row = $stmt->fetch();
+        $dbToken = is_array($row) ? $row['sesion_token'] : false;
         if (!is_string($dbToken) || !hash_equals($dbToken, $token)) {
             unset($_SESSION['user'], $_SESSION['sesion_token']);
             return null;
+        }
+        if (is_array($row) && (int)$row['es_admin'] !== (int)$user['es_admin']) {
+            $user['es_admin'] = (int)$row['es_admin'];
+            $_SESSION['user'] = $user;
         }
         return $user;
     } catch (Throwable $e) {
