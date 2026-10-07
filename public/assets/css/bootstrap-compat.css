@@ -1,0 +1,36 @@
+/* bootstrap-compat.css
+ * Neutraliza los resets del reboot de Bootstrap 5 para preservar
+ * el diseño original de AMEMT. Debe cargarse DESPUÉS de bootstrap.min.css
+ * y ANTES de style.css.
+ */
+
+/* Recupera el line-height del navegador (Bootstrap lo fija en 1.5). */
+body {
+    line-height: normal;
+}
+
+/* Recupera sizes/márgenes/fondos de títulos del navegador. */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    line-height: 1.2;
+}
+h1 { font-size: 2em; margin: 0.67em 0; }
+h2 { font-size: 1.5em; margin: 0.83em 0; }
+h3 { font-size: 1.17em; margin: 1em 0; }
+h4 { font-size: 1em; margin: 1.33em 0; }
+h5 { font-size: 0.83em; margin: 1.67em 0; }
+h6 { font-size: 0.67em; margin: 2.33em 0; }
+
+/* Recupera márgenes de párrafo del navegador. */
+p { margin: 1em 0; }
+
+/* Mantiene el color/layout de los enlaces propios del proyecto. */
+a { color: inherit; text-decoration: underline; }
+a:hover { color: inherit; }
+
+/* La alerta base del proyecto no debe tomar el fondo bordeado de Bootstrap. */
+.alert {
+    background-color: transparent;
+    border: 0;
+    margin-bottom: 0;
+}

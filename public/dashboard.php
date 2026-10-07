@@ -1,0 +1,99 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/functions.php';
+
+$user = require_login();
+if ((int)$user['es_admin'] === 1) { header('Location: admin/panel.php'); exit; }
+$fichaje = today_fichaje($user['id']);
+$fichajesHoy = today_fichajes($user['id']);
+$hours = month_hours($user['id']);
+$surgeries = today_cirurgies($user['id']);
+$cooldown = fichaje_cooldown_restante($user['id']);
+
+$page_title = 'Fichaje';
+$page_heading = 'Bienvenida/o, ' . $user['nombre'];
+$page_subtitle = 'Panel de empleado';
+require __DIR__ . '/partials/header.php';
+?>
+
+<section class="cards">
+    <article class="stat">
+        <span>Entrada hoy</span>
+        <strong><?= e($fichaje['hora_entrada'] ?? '--:--') ?></strong>
+        <small><?= date('d/m/Y') ?></small>
+    </article>
+
+    <article class="stat">
+        <span>Horas este mes</span>
+        <strong><?= number_format($hours, 2, ',', '.') ?> h</strong>
+        <small>Horas registradas</small>
+    </article>
+</section>
+
+<section class="actions">
+    <button id="btnEntrada" class="btn entry" <?= ($cooldown > 0 || ($fichaje && !$fichaje['hora_salida'])) ? 'disabled' : '' ?>>
+        <?= icon('login', 18) ?>Registrar entrada
+    </button>
+    <button id="btnSalida" class="btn exit" <?= ($cooldown > 0 || !$fichaje || !$fichaje['hora_entrada'] || $fichaje['hora_salida']) ? 'disabled' : '' ?>>
+        <?= icon('logout', 18) ?>Registrar salida
+    </button>
+    <p id="message" class="alert<?= $cooldown > 0 ? ' error' : ' hidden' ?>" data-retry-after="<?= (int)$cooldown ?>"><?= $cooldown > 0 ? e(fichaje_cooldown_mensaje($cooldown)) : '' ?></p>
+</section>
+
+<section class="panel">
+    <h2>Actividades del día</h2>
+    <div class="table-wrap">
+    <table data-paginate="10">
+        <thead>
+            <tr>
+                <th>Evento</th>
+                <th>Hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($fichajesHoy as $f): ?>
+                <?php if ($f['hora_entrada']): ?>
+                <tr>
+                    <td><span class="status bubble entrada">Entrada</span></td>
+                    <td><?= e(substr($f['hora_entrada'], 0, 5)) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($f['hora_salida']): ?>
+                <tr>
+                    <td><span class="status bubble salida">Salida</span></td>
+                    <td><?= e(substr($f['hora_salida'], 0, 5)) ?></td>
+                </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
+
+            <?php if (!$fichajesHoy && !$surgeries): ?>
+                <tr><td colspan="2">No hay actividades registradas.</td></tr>
+            <?php endif; ?>
+        </tbody>
+        <?php if ($surgeries): ?>
+        <tbody>
+            <tr class="subhead"><td colspan="2">Cirugías de hoy</td></tr>
+            <?php foreach ($surgeries as $surgery): ?>
+                <tr>
+                    <td>Cirugía participada - <?= e($surgery['rol_en_cirugia']) ?></td>
+                    <td><?= e(substr($surgery['hora_inicio'], 0, 5)) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <?php endif; ?>
+    </table>
+    </div>
+</section>
+
+<div id="okOverlay" class="ok-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="okTitle">
+    <div class="ok-card">
+        <div class="ok-icon"><?= icon('check', 42) ?></div>
+        <h2 id="okTitle">REGISTRO CORRECTO</h2>
+        <p class="ok-time" id="okTime">--:--</p>
+        <button id="okContinue" class="btn primary" type="button">Continuar</button>
+    </div>
+</div>
+
+<?php require __DIR__ . '/partials/footer.php'; ?>
